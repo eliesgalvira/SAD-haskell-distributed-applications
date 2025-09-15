@@ -1,11 +1,17 @@
-primer :: Double -> Double -> Double
-primer x y = x
+primer :: a -> b -> a
+primer x _ = x
 
-segon :: Double -> Double -> Double
-segon x y = y
+segon :: a -> b -> b
+segon _ y = y
 
-primerL :: Double -> Double -> Double
-primerL = \x -> \y -> x
+primerL :: a -> b -> a
+primerL = \x -> \_ -> x
 
-segonL :: Double -> Double -> Double
-segonL = \x -> \y -> y
+segonL :: a -> b -> b 
+segonL = \_ -> \y -> y
+
+r1 = primer (segon 1 2) 3
+r2 = segon (primer 1 2) 3
+r3 = primer (1 + segon 1 2 + 1) 2
+r4 = primer segon 1 2 3
+
