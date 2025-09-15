@@ -40,3 +40,10 @@ e2 = primer (primer (primer 0 0) 0) 0
 e3 = 0 + primer (segon 1 0) 1
 e3' = 0 + primer segon 1 0 1
 e4 = div e1 e3'
+
+
+equacioRecta :: Num a => a -> a -> a -> a
+equacioRecta m b x = m * x + b
+
+equacioRecta4 :: Num a => a -> a -> a
+equacioRecta4 = equacioRecta 4
