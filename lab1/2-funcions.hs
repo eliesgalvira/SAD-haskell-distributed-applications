@@ -15,3 +15,11 @@ r2 = segon (primer 1 2) 3
 r3 = primer (1 + segon 1 2 + 1) 2
 r4 = primer segon 1 2 3
 
+(?) = primer
+(??) = segon
+
+r1i = 1 ?? 2 ? 3
+r2i = 1 ? 2 ?? 3 
+r3i = 1 + 1 ?? 2 + 1 ? 2
+r4i = 2 ?? 3 ? 1
+
