@@ -33,3 +33,10 @@ inter f x y = f y x
 
 segonI :: a -> b -> b
 segonI x y = primer y x
+
+
+e1 = (+) (inter (-) 1 2) (-1)
+e2 = primer (primer (primer 0 0) 0) 0
+e3 = 0 + primer (segon 1 0) 1
+e3' = 0 + primer segon 1 0 1
+e4 = div e1 e3'
