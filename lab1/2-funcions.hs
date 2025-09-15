@@ -23,3 +23,7 @@ r2i = 1 ? 2 ?? 3
 r3i = 1 + 1 ?? 2 + 1 ? 2
 r4i = 2 ?? 3 ? 1
 
+
+inter :: (a -> b -> c) -> b -> a -> c
+inter f x y = f y x
+
