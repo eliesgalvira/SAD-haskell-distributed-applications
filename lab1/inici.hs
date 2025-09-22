@@ -1,3 +1,2 @@
-inc :: Double -> Double
+inc :: Num a => a -> a
 inc i = i + 1
-
