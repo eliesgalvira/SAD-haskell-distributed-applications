@@ -29,7 +29,7 @@ r3i = 1 + 1 ?? 2 + 1 ? 2
 r4i = 2 ?? 3 ? 1
 
 -- 2.5 Funció d'ordre superior
-inter :: (a -> b -> c) -> b -> a -> c
+inter :: (b -> a -> c) -> a -> b -> c
 inter f x y = f y x
 
 
