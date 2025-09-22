@@ -45,7 +45,7 @@ e4 = div e1 e3'
 
 -- 2.6 Aplicació parcial
 equacioRecta :: Num a => a -> a -> a -> a
-equacioRecta m b x = m * x + b
+equacioRecta m b = \x -> m * x + b
 
 equacioRecta4 :: Num a => a -> a -> a
 equacioRecta4 = equacioRecta 4
