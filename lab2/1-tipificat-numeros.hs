@@ -1,5 +1,3 @@
--- 02lab.hs
-
 -- Definicions inicials sense tipificar explícitament
 p = 2
 -- Tipus inferit pel compilador:
@@ -9,7 +7,6 @@ q = 1
 -- Tipus inferit pel compilador:
 -- q :: Num a => a
 
--- Afegim una divisió amb (/)
 dr = p / q
 -- Tipus inferit ara:
 -- dr :: Fractional a => a
