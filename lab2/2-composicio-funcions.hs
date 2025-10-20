@@ -24,5 +24,27 @@ arrodonirLet valor numeroDecimals =
   in arrodonirADouble .$. (valor * zerosDecimals) / zerosDecimals
 
 -- Exercici: definir la funció arrodonirb
+-- Els parentesis necessaris son diferents perque $ associativa per la dreta i .$. per l'esquerra
 arrodonirb :: Double -> Integer -> Double
 arrodonirb valor numeroDecimals = (fromIntegral . round $ valor * 10 ^ numeroDecimals) / 10 ^ numeroDecimals
+
+-- Exercici de composició
+-- 1. Definir la funció elevar al quadrat
+quad :: Int -> Int
+quad x = x * x
+
+-- 2. Definir la funció multiplicar
+multiplicar :: Int -> Int -> Int
+multiplicar x y = x * y
+
+-- 3. Definir la funció triple
+triple :: Int -> Int
+triple x = x * 3
+
+-- 4. Definir la funció triplequad (3n)^2
+triplequad :: Int -> Int
+triplequad = quad . triple
+
+-- 5. Definir la funció multiplicarquad (n*m)^2
+multiplicarquad :: Int -> Int -> Int
+multiplicarquad m n = quad $ multiplicar m n -- recorda que $ es associativa per la dreta
