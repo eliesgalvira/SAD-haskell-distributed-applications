@@ -48,10 +48,14 @@ multiplicarquad m n = quad $ multiplicar m n -- recorda que $ es associativa per
 -- Exercici reescriure amb mínim número de parentesis
 inc x = x + 1
 -- Inicial
-f1 x = inc (inc (inc x) + (inc x)) -- f1 x = 2x + 4
-f2 x = (+) (inc (inc x)) (inc (x + x))
+f1 x = inc (inc (inc x) + (inc x)) -- f1 x = inc ((x + 2) + (x + 1)) = 2x + 4
+f2 x = (+) (inc (inc x)) (inc (x + x)) -- f2 x = (2x + 1) + (x + 2) = 3x + 3
 -- Reescrit amb la mateixa estructura: inc . inc x = inc . (inc x), l'aplicació te precedencia
 -- agrupant primer: (inc . inc) x = \x -> inc (inc x)
 f1' x = inc $ (inc . inc) x + inc x
 -- Sense parentesis, simplificar inc (inc (inc x + inc x)): Utilitzant inc (x + 1) = inc x + 1
 f1'' x = inc . inc $ inc x + inc x
+-- Reescrit amb la mateixa estructura:
+f2' x = (+) (inc . inc $ x) (inc $ x + x)
+-- Sense parentesis: utilitzant inc (x + 1) = inc x + 1
+f2'' x = inc . inc . inc $ x + x + x
