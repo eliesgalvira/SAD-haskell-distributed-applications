@@ -59,3 +59,7 @@ f1'' x = inc . inc $ inc x + inc x
 f2' x = (+) (inc . inc $ x) (inc $ x + x)
 -- Sense parentesis: utilitzant inc (x + 1) = inc x + 1
 f2'' x = inc . inc . inc $ x + x + x
+
+-- Exercici seqüenciació
+(.>) :: a -> (a -> b) -> b
+(.>) x f = f x
