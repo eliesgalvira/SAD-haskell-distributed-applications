@@ -36,4 +36,13 @@ sumaNat Zero n = n
 sumaNat m Zero = m
 sumaNat (S m) n = S (sumaNat m n)
 
-data MInt = Pos Nat | Neg Nat | MZero
+data MInt = Pos Nat | Neg Nat -- N'hi ha dos zeros, el Pos Zero i el Neg Zero
+  deriving (Show)
+
+intAnat :: Int -> Nat -- No contemplo el cas negatiu, per fer
+intAnat 0 = Zero
+intAnat n = S (intAnat (n - 1))
+
+mintAint :: MInt -> Int
+mintAint (Pos n) = natAint n
+mintAint (Neg n) = - natAint n
