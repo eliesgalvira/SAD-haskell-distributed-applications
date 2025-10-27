@@ -51,8 +51,54 @@ intAmint :: Int -> MInt
 intAmint 0 = Pos Zero
 intAmint n = if n > 0 then Pos (intAnat n) else Neg (intAnat (-n))
 
-sumaMint :: MInt -> MInt -> MInt
-sumaMint (Pos m) (Pos n) = intAmint (natAint m + natAint n)
-sumaMint (Neg m) (Neg n) = intAmint (-(natAint m + natAint n))
-sumaMint (Pos m) (Neg n) = intAmint (natAint m - natAint n)
-sumaMint (Neg m) (Pos n) = intAmint (natAint n - natAint m)
+sumaMInt :: MInt -> MInt -> MInt
+sumaMInt (Pos m) (Pos n) = intAmint (natAint m + natAint n)
+sumaMInt (Neg m) (Neg n) = intAmint (-(natAint m + natAint n))
+sumaMInt (Pos m) (Neg n) = intAmint (natAint m - natAint n)
+sumaMInt (Neg m) (Pos n) = intAmint (natAint n - natAint m)
+
+-- Auxiliars per Nat (sense Int: per comparar i resta pura)
+eqNat :: Nat -> Nat -> Bool
+eqNat Zero Zero = True
+eqNat (S m) (S n) = eqNat m n
+eqNat _ _ = False
+
+ltNat :: Nat -> Nat -> Bool  -- m < n
+ltNat Zero (S _) = True
+ltNat (S m) Zero = False
+ltNat (S m) (S n) = ltNat m n
+ltNat Zero Zero = False
+
+restaNat :: Nat -> Nat -> Nat  -- m - n, assumint m >= n (torna Zero si m < n, però nosaltres controlem)
+restaNat Zero _ = Zero
+restaNat m Zero = m
+restaNat (S m) (S n) = restaNat m n
+
+-- sumaMIntD: Sense conversions (només patrons, recursió i auxiliars)
+-- Zero implícit: Pos Zero + qualsevol = qualsevol, etc.
+sumaMIntD :: MInt -> MInt -> MInt
+-- Casos amb zero (Pos Zero)
+sumaMIntD (Pos Zero) n = n
+sumaMIntD m (Pos Zero) = m
+
+-- Pos + Pos
+sumaMIntD (Pos m) (Pos n) = Pos (sumaNat m n)
+
+-- Neg + Neg
+sumaMIntD (Neg m) (Neg n) = Neg (sumaNat m n)
+
+-- Pos + Neg: m - n (captura zero com Pos Zero)
+sumaMIntD (Pos m) (Neg n) =
+  if eqNat m n
+    then Pos Zero  -- m == n → 0
+    else if ltNat m n
+           then Neg (restaNat n m)  -- m < n → -(n - m)
+           else Pos (restaNat m n)  -- m > n → +(m - n)
+
+-- Neg + Pos: n - m (simètric, captura zero com Pos Zero)
+sumaMIntD (Neg m) (Pos n) =
+  if eqNat m n
+    then Pos Zero  -- m == n → 0
+    else if ltNat m n
+           then Pos (restaNat n m)  -- m < n → n - m > 0
+           else Neg (restaNat m n)  -- m > n → -(m - n) < 0
