@@ -16,3 +16,12 @@ binomial :: Int -> Int -> Int
 binomial _ 0 = 1
 binomial 0 _ = 0
 binomial n k = binomial (n - 1) (k - 1) + binomial (n - 1) k
+
+-- Exercici (sumaN i sumaNPar):
+sumaN :: Int -> Int
+sumaN 0 = 0
+sumaN n = n + sumaN (n - 1)
+
+sumaNPar :: Int -> Int
+sumaNPar 0 = 0
+sumaNPar n = 2 * n + sumaNPar (n - 1)
