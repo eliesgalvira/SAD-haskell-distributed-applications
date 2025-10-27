@@ -25,3 +25,19 @@ sumaN n = n + sumaN (n - 1)
 sumaNPar :: Int -> Int
 sumaNPar 0 = 0
 sumaNPar n = 2 * n + sumaNPar (n - 1)
+
+-- Exercici (sumaG):
+sumaG :: (Int -> Int) -> Int -> Int
+sumaG f n
+  | n == 0 = 0
+  | otherwise = f n + sumaG f (n - 1)
+
+sumaNG :: Int -> Int
+sumaNG = sumaG id
+
+sumaNParG :: Int -> Int
+sumaNParG = sumaG (*2)
+
+-- Exercici (sumatoriD):
+sumatoriD :: (Int -> Int) -> (Int -> Int) -> Int -> Int
+sumatoriD f g n = sumaG (\i -> f i * sumaG g n) n
