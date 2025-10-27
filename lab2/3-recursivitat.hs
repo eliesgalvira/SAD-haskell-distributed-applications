@@ -10,3 +10,9 @@ residu _ 0 = 0                  -- decisió: residu 0 si divisor 0
 residu n d
   | n < d     = n
   | otherwise = residu (n - d) d
+
+-- Exercici (Coeficienet binomial):
+binomial :: Int -> Int -> Int
+binomial _ 0 = 1
+binomial 0 _ = 0
+binomial n k = binomial (n - 1) (k - 1) + binomial (n - 1) k
