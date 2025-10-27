@@ -8,17 +8,17 @@ I .==. I = True
 _ .==. _ = False
 
 -- 1.2 Constructors de valors paramètrics
-data Dbit = D Bit Bit
+data DBit = D Bit Bit
   deriving (Show)
 
 bitAint :: Bit -> Int
 bitAint O = 0
 bitAint I = 1
 
-dbitAint :: Dbit -> Int
+dbitAint :: DBit -> Int
 dbitAint (D x y) = if x .==. O then bitAint y else 2 + bitAint y
 
 -- 1.3 Patrons
-dbitAintP :: Dbit -> Int
+dbitAintP :: DBit -> Int
 dbitAintP (D O y) = bitAint y
 dbitAintP (D I y) = 2 + bitAint y
