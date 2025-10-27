@@ -46,3 +46,13 @@ intAnat n = S (intAnat (n - 1))
 mintAint :: MInt -> Int
 mintAint (Pos n) = natAint n
 mintAint (Neg n) = - natAint n
+
+intAmint :: Int -> MInt
+intAmint 0 = Pos Zero
+intAmint n = if n > 0 then Pos (intAnat n) else Neg (intAnat (-n))
+
+sumaMint :: MInt -> MInt -> MInt
+sumaMint (Pos m) (Pos n) = intAmint (natAint m + natAint n)
+sumaMint (Neg m) (Neg n) = intAmint (-(natAint m + natAint n))
+sumaMint (Pos m) (Neg n) = intAmint (natAint m - natAint n)
+sumaMint (Neg m) (Pos n) = intAmint (natAint n - natAint m)
