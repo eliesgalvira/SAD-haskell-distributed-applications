@@ -41,3 +41,17 @@ sumaNParG = sumaG (*2)
 -- Exercici (sumatoriD):
 sumatoriD :: (Int -> Int) -> (Int -> Int) -> Int -> Int
 sumatoriD f g n = sumaG (\i -> f i * sumaG g n) n
+
+-- Exercici (Derivada numèrica): (f(p+h) - f(p)) / h, reduint h fins estabilitzar
+drvd :: (Double -> Double) -> Double -> Double
+drvd f p = bucle 1.0e-2 1.0e9 60 -- h0  d0 maxIter, d0 = 1.0e9 garanteix que la primera comparació no pararà per < 1e-6
+  where
+    diff h = (f (p + h) - f p) / h
+
+    bucle h prev k
+      | k <= 0                      = prev
+      | abs (curr - prev) < 1.0e-6  = curr
+      | otherwise                   = bucle h' curr (k - 1)
+      where
+        h'   = h * 0.5
+        curr = diff h'
