@@ -15,7 +15,7 @@ Assignatura pràctica on implementem elements de protocols de comunicació (p. e
   - `3-tipus.hs`: definició i ús de tipus propis.
   - `lab1-tasques.md`: enunciat i guió d’exercicis del laboratori 1.
 
-Mesures i laboratoris posteriors (TCP, HTTP, concurrència, etc.) s’afegiran amb nous directoris `labN/` a mesura que avanci el curs.
+Laboratoris posteriors (TCP, HTTP, concurrència, etc.) s’afegiran amb nous directoris `labN/` a mesura que avanci el curs.
 
 ### Requisits
 - **Stack** per gestionar el toolchain i sessions de GHCi. Vegeu la web de [Stack](https://haskellstack.org).
@@ -62,22 +62,22 @@ Per ara, `nix run` imprimeix "Hello World". Més endavant, aquest comandament ex
 nix run
 ```
 
-- **Directament a traves de GitHub:**
+- **Directament a través de GitHub:**
 ```bash
 nix run github:eliesgalvira/SAD-haskell-distributed-applications
 ```
 
-Si el vostre sistema tenia una versió antiga en memòria cau, forceu refresc:
+Si el vostre sistema tenia una versió antiga en memòria cau, forceu el refresc:
 ```bash
 nix run --refresh github:eliesgalvira/SAD-haskell-distributed-applications
 ```
 
 ### Instal·lació ultra-ràpida per sistema operatiu
-1) **Linux/macOS** — instal·lar Nix en un pas:
+1) **Linux/macOS** — instal·leu Nix en un pas:
 ```bash
 sh <(curl -L https://nixos.org/nix/install) --daemon
 ```
-2) A continuació, executar el projecte:
+2) A continuació, executeu el projecte:
 ```bash
 nix run github:eliesgalvira/SAD-haskell-distributed-applications
 ```
@@ -87,18 +87,18 @@ nix run github:eliesgalvira/SAD-haskell-distributed-applications
 ```powershell
 wsl --install -d Ubuntu
 ```
-   - A la terminal d'Ubuntu que s'obrirà, executeu els passos de Linux (instal·lar Nix i `nix run`).
+   - A la terminal d'Ubuntu que s'obrirà, seguiu els passos per a Linux (instal·leu Nix i després `nix run`).
 
-Alternatives per Windows: utilitzar un entorn Linux (p. ex. VM) o un servei remot.
+Alternatives per a Windows: utilitzeu un entorn Linux (p. ex. una VM) o un servei remot.
 
 ### Entorn de desenvolupament amb Nix
-Obrir un shell amb GHC i `cabal` preinstal·lats:
+Obriu un shell amb GHC i `cabal` preinstal·lats:
 ```bash
 nix develop
 ```
 
 ### Proves amb Cabal
-- **Directament (fora o dins del dev shell):**
+- **Directament (fora o dins del shell de desenvolupament):**
 ```bash
 cabal test --test-show-detail=streaming
 ```
@@ -108,4 +108,4 @@ cabal test --test-show-detail=streaming
 nix develop -c cabal test --test-show-detail=streaming
 ```
 
-> Nota: al dia a dia podeu seguir usant GHCi per a fitxers concrets (vegeu "Posada en marxa ràpida"). `cabal test` s'utilitza sobretot per orquestrar proves del laboratori.
+> Nota: en el dia a dia podeu continuar fent servir GHCi per a fitxers concrets (vegeu "Posada en marxa ràpida"). `cabal test` s'utilitza sobretot per orquestrar les proves del laboratori.
