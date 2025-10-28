@@ -131,3 +131,9 @@ giraL xs = go xs Nil
     go :: List a -> List a -> List a
     go Nil acc = acc
     go (Cons y ys) acc = go ys (Cons y acc)
+
+-- List of lists: [[n..1], [n-1..1], ..., [1]] in custom List
+initLdL :: Int -> List (List Int)
+initLdL n
+  | n <= 0 = Nil
+  | otherwise = Cons (initL n) (initLdL (n - 1))
