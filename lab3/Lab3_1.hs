@@ -157,3 +157,10 @@ aplastaL (Cons l ls) = appendL l (aplastaL ls)
 mapejaL :: (a -> b) -> List a -> List b
 mapejaL _ Nil = Nil
 mapejaL f (Cons x xs) = Cons (f x) (mapejaL f xs)
+
+-- Non-recursive versions using mapejaL
+initLdL2 :: Int -> List (List Int)
+initLdL2 n = mapejaL initL (aL [n, n-1 .. 1])
+
+desdeLdL2 :: List (List a) -> [[a]]
+desdeLdL2 lls = desdeL (mapejaL desdeL lls)
