@@ -152,3 +152,8 @@ appendL (Cons x xs) ys = Cons x (appendL xs ys)
 aplastaL :: List (List a) -> List a
 aplastaL Nil = Nil
 aplastaL (Cons l ls) = appendL l (aplastaL ls)
+
+-- Map over custom lists
+mapejaL :: (a -> b) -> List a -> List b
+mapejaL _ Nil = Nil
+mapejaL f (Cons x xs) = Cons (f x) (mapejaL f xs)
