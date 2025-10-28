@@ -117,3 +117,9 @@ desdeL (Cons x xs) = x : desdeL xs
 aL :: [a] -> List a
 aL [] = Nil
 aL (x:xs) = Cons x (aL xs)
+
+-- Create a custom list with integers from n down to 1
+initL :: Int -> List Int
+initL n
+  | n <= 0 = Nil
+  | otherwise = Cons n (initL (n - 1))
