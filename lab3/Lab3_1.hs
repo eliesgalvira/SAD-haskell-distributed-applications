@@ -123,3 +123,11 @@ initL :: Int -> List Int
 initL n
   | n <= 0 = Nil
   | otherwise = Cons n (initL (n - 1))
+
+-- Reverse a custom list
+giraL :: List a -> List a
+giraL xs = go xs Nil
+  where
+    go :: List a -> List a -> List a
+    go Nil acc = acc
+    go (Cons y ys) acc = go ys (Cons y acc)
