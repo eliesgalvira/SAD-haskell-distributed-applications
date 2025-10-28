@@ -142,3 +142,13 @@ initLdL n
 desdeLdL :: List (List a) -> [[a]]
 desdeLdL Nil = []
 desdeLdL (Cons l ls) = desdeL l : desdeLdL ls
+
+-- Append two custom lists
+appendL :: List a -> List a -> List a
+appendL Nil ys = ys
+appendL (Cons x xs) ys = Cons x (appendL xs ys)
+
+-- Flatten a custom list of custom lists into a single custom list
+aplastaL :: List (List a) -> List a
+aplastaL Nil = Nil
+aplastaL (Cons l ls) = appendL l (aplastaL ls)
