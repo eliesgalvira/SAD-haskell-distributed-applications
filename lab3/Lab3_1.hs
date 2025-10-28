@@ -105,62 +105,62 @@ sumaMIntD (Neg m) (Pos n) =
            then Pos (restaNat n m)  -- m < n → n - m > 0
            else Neg (restaNat m n)  -- m > n → -(m - n) < 0
 
--- 1.6 Llistes
-data List a = Nil | Cons a (List a)
+-- Llista buida o conté un element i una llista (que pot ser buida)
+data Llista a = B | L a (Llista a)
   deriving (Show, Eq)
 
--- Conversions between custom List and Haskell lists
-desdeL :: List a -> [a]
-desdeL Nil = []
-desdeL (Cons x xs) = x : desdeL xs
+-- Conversió entre la nostra Llista i les llistes d'Haskell
+desdeL :: Llista a -> [a]
+desdeL B = []
+desdeL (L x xs) = x : desdeL xs
 
-aL :: [a] -> List a
-aL [] = Nil
-aL (x:xs) = Cons x (aL xs)
+aL :: [a] -> Llista a
+aL [] = B
+aL (x:xs) = L x (aL xs)
 
--- Create a custom list with integers from n down to 1
-initL :: Int -> List Int
+-- Crea una llista amb els enters de n fins a 1
+initL :: Int -> Llista Int
 initL n
-  | n <= 0 = Nil
-  | otherwise = Cons n (initL (n - 1))
+  | n <= 0 = B
+  | otherwise = L n (initL (n - 1))
 
--- Reverse a custom list
-giraL :: List a -> List a
-giraL xs = go xs Nil
+-- Gira una llista (tail-recursiu amb acumulador)
+giraL :: Llista a -> Llista a
+giraL xs = rev xs B
   where
-    go :: List a -> List a -> List a
-    go Nil acc = acc
-    go (Cons y ys) acc = go ys (Cons y acc)
+    rev :: Llista a -> Llista a -> Llista a
+    rev B acc = acc
+    rev (L y ys) acc = rev ys (L y acc)
 
--- List of lists: [[n..1], [n-1..1], ..., [1]] in custom List
-initLdL :: Int -> List (List Int)
+-- Llista de llistes: [[n..1],[n-1..1],..., [1]] amb el nostre tipus
+initLdL :: Int -> Llista (Llista Int)
 initLdL n
-  | n <= 0 = Nil
-  | otherwise = Cons (initL n) (initLdL (n - 1))
+  | n <= 0 = B
+  | otherwise = L (initL n) (initLdL (n - 1))
 
--- Convert a custom list of custom lists to a Haskell list of lists
-desdeLdL :: List (List a) -> [[a]]
-desdeLdL Nil = []
-desdeLdL (Cons l ls) = desdeL l : desdeLdL ls
+-- Conversió d'una Llista de Llistes a llista d'Haskell
+desdeLdL :: Llista (Llista a) -> [[a]]
+desdeLdL B = []
+desdeLdL (L l ls) = desdeL l : desdeLdL ls
 
--- Append two custom lists
-appendL :: List a -> List a -> List a
-appendL Nil ys = ys
-appendL (Cons x xs) ys = Cons x (appendL xs ys)
+-- Concatena dues Llistes
+concatenaL :: Llista a -> Llista a -> Llista a
+concatenaL B ys = ys
+concatenaL (L x xs) ys = L x (concatenaL xs ys)
 
--- Flatten a custom list of custom lists into a single custom list
-aplastaL :: List (List a) -> List a
-aplastaL Nil = Nil
-aplastaL (Cons l ls) = appendL l (aplastaL ls)
+-- Aplana una Llista de Llistes en una sola Llista
+aplastaL :: Llista (Llista a) -> Llista a
+aplastaL B = B
+aplastaL (L l ls) = concatenaL l (aplastaL ls)
 
--- Map over custom lists
-mapejaL :: (a -> b) -> List a -> List b
-mapejaL _ Nil = Nil
-mapejaL f (Cons x xs) = Cons (f x) (mapejaL f xs)
+-- Mapeig sobre Llistes
+mapejaL :: (a -> b) -> Llista a -> Llista b
+mapejaL _ B = B
+mapejaL f (L x xs) = L (f x) (mapejaL f xs)
 
--- Non-recursive versions using mapejaL
-initLdL2 :: Int -> List (List Int)
+-- Versions no recursives utilitzant mapejaL
+initLdL2 :: Int -> Llista (Llista Int)
 initLdL2 n = mapejaL initL (aL [n, n-1 .. 1])
 
-desdeLdL2 :: List (List a) -> [[a]]
+desdeLdL2 :: Llista (Llista a) -> [[a]]
 desdeLdL2 lls = desdeL (mapejaL desdeL lls)
