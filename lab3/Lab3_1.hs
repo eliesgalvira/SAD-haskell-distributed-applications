@@ -137,3 +137,8 @@ initLdL :: Int -> List (List Int)
 initLdL n
   | n <= 0 = Nil
   | otherwise = Cons (initL n) (initLdL (n - 1))
+
+-- Convert a custom list of custom lists to a Haskell list of lists
+desdeLdL :: List (List a) -> [[a]]
+desdeLdL Nil = []
+desdeLdL (Cons l ls) = desdeL l : desdeLdL ls
