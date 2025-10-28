@@ -109,10 +109,11 @@ sumaMIntD (Neg m) (Pos n) =
 data List a = Nil | Cons a (List a)
   deriving (Show, Eq)
 
-listAint :: List Int -> Int
-listAint Nil = 0
-listAint (Cons x xs) = x + listAint xs
+-- Conversions between custom List and Haskell lists
+desdeL :: List a -> [a]
+desdeL Nil = []
+desdeL (Cons x xs) = x : desdeL xs
 
-listAintP :: List Int -> Int
-listAintP Nil = 0
-listAintP (Cons x xs) = x + listAintP xs
+aL :: [a] -> List a
+aL [] = Nil
+aL (x:xs) = Cons x (aL xs)
