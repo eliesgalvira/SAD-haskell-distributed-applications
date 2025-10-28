@@ -161,7 +161,7 @@ testsSumaMIntD = TestList [
 
 -- Main suite
 mainSuite :: Test
-mainSuite = TestList [testsBit, testsDBit, testsDBitP, testsNat, testsMIntConv, testsSumaMInt, testsSumaMIntD]
+mainSuite = TestList [testsBit, testsDBit, testsDBitP, testsNat, testsMIntConv, testsSumaMInt, testsSumaMIntD, testsList]
 
 -- For Cabal batch/GHCi: Verbose run + report
 main :: IO ()
@@ -176,3 +176,34 @@ main = do
   if myFailures counts + myErrors counts == 0
     then putStrLn "All tests passed!"
     else exitFailure
+
+-- 1.6: List functions
+testsList :: Test
+testsList = TestList [
+    TestLabel "desdeL simple" (TestCase (assertEqual "desdeL (Cons 1 (Cons 2 (Cons 3 Nil)))" [1,2,3] (desdeL (Cons 1 (Cons 2 (Cons 3 Nil))))))
+  , TestLabel "aL simple" (TestCase (assertEqual "aL [1,2,3]" (Cons 1 (Cons 2 (Cons 3 Nil))) (aL [1,2,3])))
+
+  , TestLabel "initL 5 structure" (TestCase (assertEqual "initL 5" (Cons 5 (Cons 4 (Cons 3 (Cons 2 (Cons 1 Nil))))) (initL 5)))
+  , TestLabel "initL 5 to list" (TestCase (assertEqual "desdeL (initL 5)" [5,4,3,2,1] (desdeL (initL 5))))
+
+  , TestLabel "giraL of [1,2,3]" (TestCase (assertEqual "giraL [1,2,3]" [3,2,1] (desdeL (giraL (aL [1,2,3])))))
+
+  , TestLabel "initLdL 3 structure" (TestCase (assertEqual "initLdL 3"
+      (Cons (Cons 3 (Cons 2 (Cons 1 Nil))) (Cons (Cons 2 (Cons 1 Nil)) (Cons (Cons 1 Nil) Nil)))
+      (initLdL 3)))
+  , TestLabel "desdeLdL (initLdL 3)" (TestCase (assertEqual "desdeLdL (initLdL 3)" [[3,2,1],[2,1],[1]] (desdeLdL (initLdL 3))))
+
+  , TestLabel "aplastaL sample" (TestCase (assertEqual "aplastaL (Cons Nil (Cons (Cons 1 Nil) Nil))"
+      (Cons 1 Nil)
+      (aplastaL (Cons Nil (Cons (Cons 1 Nil) Nil)))))
+  , TestLabel "aplastaL (initLdL 3)" (TestCase (assertEqual "aplastaL (initLdL 3)" [3,2,1,2,1,1] (desdeL (aplastaL (initLdL 3)))))
+
+  , TestLabel "mapejaL even [1,2,3]" (TestCase (assertEqual "mapejaL even" [False, True, False] (desdeL (mapejaL even (aL [1,2,3])))))
+
+  , TestLabel "initLdL2 equals initLdL via desdeLdL" (TestCase (assertEqual "initLdL2 vs initLdL"
+      (desdeLdL (initLdL 4))
+      (desdeLdL (initLdL2 4))))
+  , TestLabel "desdeLdL2 equals desdeLdL" (TestCase (assertEqual "desdeLdL2 vs desdeLdL"
+      (desdeLdL (initLdL 4))
+      (desdeLdL2 (initLdL 4))))
+  ]
