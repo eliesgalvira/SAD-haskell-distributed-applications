@@ -54,6 +54,58 @@ Consell: manteniu GHCi obert mentre codeu i useu `:r` per a bucle curt d’edici
 - [Haskell 2010 Language Report](https://www.haskell.org/onlinereport/haskell2010/)
 - [Haskell Wiki](https://wiki.haskell.org/Haskell)
 
-# Nix
-`nix-shell`
-`cabal test --test-show-detail=streaming`
+### Executar amb Nix (ara: "Hello World")
+Per ara, `nix run` imprimeix "Hello World". Més endavant, aquest comandament executarà el client TCP del projecte.
+
+- **Des del repositori clonat:**
+```bash
+nix run
+```
+
+- **Directament a traves de GitHub:**
+```bash
+nix run github:eliesgalvira/SAD-haskell-distributed-applications
+```
+
+Si el vostre sistema tenia una versió antiga en memòria cau, forceu refresc:
+```bash
+nix run --refresh github:eliesgalvira/SAD-haskell-distributed-applications
+```
+
+### Instal·lació ultra-ràpida per sistema operatiu
+1) **Linux/macOS** — instal·lar Nix en un pas:
+```bash
+sh <(curl -L https://nixos.org/nix/install) --daemon
+```
+2) A continuació, executar el projecte:
+```bash
+nix run github:eliesgalvira/SAD-haskell-distributed-applications
+```
+
+1) **Windows** — recomanat via WSL (Windows Subsystem for Linux):
+   - Obriu PowerShell (Admin) i instal·leu WSL (un cop):
+```powershell
+wsl --install -d Ubuntu
+```
+   - A la terminal d'Ubuntu que s'obrirà, executeu els passos de Linux (instal·lar Nix i `nix run`).
+
+Alternatives per Windows: utilitzar un entorn Linux (p. ex. VM) o un servei remot.
+
+### Entorn de desenvolupament amb Nix
+Obrir un shell amb GHC i `cabal` preinstal·lats:
+```bash
+nix develop
+```
+
+### Proves amb Cabal
+- **Directament (fora o dins del dev shell):**
+```bash
+cabal test --test-show-detail=streaming
+```
+
+- **Amb Nix (una sola ordre):**
+```bash
+nix develop -c cabal test --test-show-detail=streaming
+```
+
+> Nota: al dia a dia podeu seguir usant GHCi per a fitxers concrets (vegeu "Posada en marxa ràpida"). `cabal test` s'utilitza sobretot per orquestrar proves del laboratori.
