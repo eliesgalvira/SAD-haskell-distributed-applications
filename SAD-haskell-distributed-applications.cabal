@@ -1,0 +1,21 @@
+cabal-version: 3.8
+name: SAD-haskell-distributed-applications
+version: 0.1.0.0
+
+library
+  exposed-modules: Lab3_1
+  hs-source-dirs: lab3
+  build-depends: base
+  default-language: GHC2021
+
+test-suite tests
+  type: exitcode-stdio-1.0
+  hs-source-dirs: lab3
+  main-is: Lab3_Tests.hs
+  build-depends:
+      base,
+      SAD-haskell-distributed-applications,
+      HUnit
+  other-modules:
+      Lab3_1
+  default-language: GHC2021
