@@ -18,7 +18,6 @@
         # Development shell with HUnit
         ghcWithPackages = haskellPackages.ghcWithPackages (hpkgs: with hpkgs; [
           HUnit
-          cabal-install
         ]);
       in
       {
@@ -27,7 +26,7 @@
         
         # Development shell (replaces shell.nix)
         devShells.default = pkgs.mkShell {
-          buildInputs = [ ghcWithPackages ];
+          buildInputs = [ ghcWithPackages pkgs.cabal-install ];
           shellHook = ''
             echo "=== Haskell Project Shell with HUnit ==="
             echo "GHC version: $(ghc --version | head -n1)"
@@ -38,12 +37,6 @@
             echo "  nix run          # Run the executable"
             echo "  cabal test       # Run tests"
           '';
-        };
-        
-        # Optional: make the app runnable
-        apps.default = {
-          type = "app";
-          program = "${myProject}/bin/SAD-haskell-distributed-applications";
         };
       }
     );
