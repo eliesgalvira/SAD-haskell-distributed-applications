@@ -1,6 +1,8 @@
+module Lab3_1 where
+
 -- 1.1 Expressions de tipus
 data Bit = O | I
-  deriving (Show)
+  deriving (Show, Eq)
 
 (.==.) :: Bit -> Bit -> Bool
 O .==. O = True
@@ -9,7 +11,7 @@ _ .==. _ = False
 
 -- 1.2 Constructors de valors paramètrics
 data DBit = D Bit Bit
-  deriving (Show)
+  deriving (Show, Eq)
 
 bitAint :: Bit -> Int
 bitAint O = 0
@@ -25,7 +27,7 @@ dbitAintP (D I y) = 2 + bitAint y
 
 -- 1.4 Definicions recursives
 data Nat = Zero | S Nat -- Cada S afegeix 1 al Nat, el succeeix
-  deriving (Show)
+  deriving (Show, Eq)
 
 natAint :: Nat -> Int -- Comptar els S fins que sigui Zero
 natAint Zero = 0
@@ -37,7 +39,7 @@ sumaNat m Zero = m
 sumaNat (S m) n = S (sumaNat m n)
 
 data MInt = Pos Nat | Neg Nat -- N'hi ha dos zeros, el Pos Zero i el Neg Zero
-  deriving (Show)
+  deriving (Show, Eq)
 
 intAnat :: Int -> Nat -- No contemplo el cas negatiu, per fer
 intAnat 0 = Zero
@@ -102,3 +104,15 @@ sumaMIntD (Neg m) (Pos n) =
     else if ltNat m n
            then Pos (restaNat n m)  -- m < n → n - m > 0
            else Neg (restaNat m n)  -- m > n → -(m - n) < 0
+
+-- 1.6 Llistes
+data List a = Nil | Cons a (List a)
+  deriving (Show, Eq)
+
+listAint :: List Int -> Int
+listAint Nil = 0
+listAint (Cons x xs) = x + listAint xs
+
+listAintP :: List Int -> Int
+listAintP Nil = 0
+listAintP (Cons x xs) = x + listAintP xs
