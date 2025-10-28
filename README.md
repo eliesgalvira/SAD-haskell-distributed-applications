@@ -54,7 +54,6 @@ Consell: manteniu GHCi obert mentre codeu i useu `:r` per a bucle curt d’edici
 - [Haskell 2010 Language Report](https://www.haskell.org/onlinereport/haskell2010/)
 - [Haskell Wiki](https://wiki.haskell.org/Haskell)
 
-### Llicència
-Si no s’especifica el contrari, aquest repositori és per a ús docent i d’aprenentatge. Afegiu una llicència si voleu compartir o reutilitzar el codi fora de l’àmbit de l’assignatura.
-
-
+# Nix
+`nix-shell`
+`cabal test --test-show-detail=streaming`
