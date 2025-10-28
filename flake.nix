@@ -23,6 +23,12 @@
       {
         # The main package - this is what users will install/run
         packages.default = myProject;
+
+        # Temporary default app: make `nix run` print Hello World
+        apps.default = {
+          type = "app";
+          program = "${pkgs.writeShellScriptBin "sad-hello" ''echo Hello World''}/bin/sad-hello";
+        };
         
         # Development shell (replaces shell.nix)
         devShells.default = pkgs.mkShell {
