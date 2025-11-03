@@ -15,9 +15,11 @@
         # Build your project
         myProject = haskellPackages.callCabal2nix "SAD-haskell-distributed-applications" ./. {};
         
-        # Development shell with HUnit
+        # Development shell with HUnit, QuickCheck, SmallCheck
         ghcWithPackages = haskellPackages.ghcWithPackages (hpkgs: with hpkgs; [
           HUnit
+          QuickCheck
+          smallcheck
         ]);
       in
       {
