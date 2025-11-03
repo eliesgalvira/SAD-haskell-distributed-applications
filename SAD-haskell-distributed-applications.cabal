@@ -5,8 +5,9 @@ version: 0.1.0.0
 library
   exposed-modules: 
       Lab3_1
+      Lab4_1
       Codec.TCPSegment
-  hs-source-dirs: lab3, lab5
+  hs-source-dirs: lab3, lab4, lab5
   build-depends: base
   default-language: GHC2021
 
@@ -19,6 +20,19 @@ test-suite lab3-tests
       SAD-haskell-distributed-applications,
       HUnit
   other-modules:
+      Lab3_1
+  default-language: GHC2021
+
+test-suite lab4-tests
+  type: exitcode-stdio-1.0
+  hs-source-dirs: lab4, lab3
+  main-is: Lab4_Tests.hs
+  build-depends:
+      base,
+      SAD-haskell-distributed-applications,
+      HUnit
+  other-modules:
+      Lab4_1
       Lab3_1
   default-language: GHC2021
 
