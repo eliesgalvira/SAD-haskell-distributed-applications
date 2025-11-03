@@ -1,10 +1,15 @@
-module Lab4_1 where
+module Lab4 where
 
+-- Importació necessària: utilitzem els tipus Llista i Nat definits al lab 3
 import Lab3_1
 import Data.Foldable
 import Data.List (partition, sort)
 
--- 1. Classe Iterador
+-- ============================================================================
+-- Secció 1: Classes i instàncies
+-- ============================================================================
+
+-- Classe Iterador per a tipus contenidors de valors
 class Iterador t where
     ele :: t a -> a  -- Retorna el primer element
     seg :: t a -> t a  -- Elimina el primer element
@@ -23,7 +28,7 @@ sumElem contenedor
     | hasnext contenedor = ele contenedor + sumElem (seg contenedor)
     | otherwise = 0
 
--- Instàncies de Eq, Ord i Enum per Nat
+-- Instàncies de Eq, Ord i Enum per Nat (Eq ja estava derivat)
 instance Ord Nat where
     compare Zero Zero = EQ
     compare Zero (S _) = LT
@@ -39,15 +44,23 @@ instance Enum Nat where
     fromEnum Zero = 0
     fromEnum (S n) = 1 + fromEnum n
 
--- 2. Instància de Semigroup per Nat
+-- ============================================================================
+-- Secció 2: Les classes Semigroup i Monoid
+-- ============================================================================
+
+-- Instància de Semigroup per Nat
 instance Semigroup Nat where
     (<>) = sumaNat
 
--- 3. Instància de Monoid per Nat
+-- Instància de Monoid per Nat
 instance Monoid Nat where
     mempty = Zero
 
--- 4. Instància de Foldable per Llista
+-- ============================================================================
+-- Secció 3: La classe Foldable
+-- ============================================================================
+
+-- Instància de Foldable per Llista
 instance Foldable Llista where
     foldMap f B = mempty
     foldMap f (L x xs) = f x <> foldMap f xs
@@ -58,7 +71,7 @@ instance Foldable Llista where
     foldl _ v B = v
     foldl f v (L x xs) = foldl f (f v x) xs
 
--- Funció foldNat
+-- Funció foldNat per a aplicar una funció recursivament sobre Nat
 foldNat :: (a -> a) -> a -> Nat -> a
 foldNat _ z Zero = z
 foldNat f z (S n) = f (foldNat f z n)
@@ -70,7 +83,9 @@ natAint' = foldNat (+1) 0
 sumNat' :: Nat -> Nat -> Nat
 sumNat' m n = foldNat S n m
 
--- 3.1 Exercicis amb llistes
+-- ============================================================================
+-- Secció 3.1: Exercicis amb llistes
+-- ============================================================================
 
 -- Calcular el màxim d'una llista d'enters
 maxInt :: [Int] -> Int

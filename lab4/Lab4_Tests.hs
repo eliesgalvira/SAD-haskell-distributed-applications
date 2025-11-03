@@ -4,7 +4,7 @@ import Control.Monad (foldM)
 import System.Exit (exitFailure)
 import Data.Monoid (Sum(..))
 import Data.Foldable (toList)
-import Lab4_1
+import Lab4
 import Lab3_1
 
 -- Custom Counts data type to avoid conflict with HUnit's Counts
