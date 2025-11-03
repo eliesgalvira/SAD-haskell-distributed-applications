@@ -3,12 +3,14 @@ name: SAD-haskell-distributed-applications
 version: 0.1.0.0
 
 library
-  exposed-modules: Lab3_1
-  hs-source-dirs: lab3
+  exposed-modules: 
+      Lab3_1
+      Codec.TCPSegment
+  hs-source-dirs: lab3, lab5
   build-depends: base
   default-language: GHC2021
 
-test-suite tests
+test-suite lab3-tests
   type: exitcode-stdio-1.0
   hs-source-dirs: lab3
   main-is: Lab3_Tests.hs
@@ -18,4 +20,18 @@ test-suite tests
       HUnit
   other-modules:
       Lab3_1
+  default-language: GHC2021
+
+test-suite codec-tcp-tests
+  type: exitcode-stdio-1.0
+  hs-source-dirs: lab5
+  main-is: Codec_TCPSegment_Tests.hs
+  build-depends:
+      base,
+      SAD-haskell-distributed-applications,
+      QuickCheck,
+      smallcheck,
+      HUnit
+  other-modules:
+      Codec.TCPSegment
   default-language: GHC2021
