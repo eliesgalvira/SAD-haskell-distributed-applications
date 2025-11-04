@@ -3,8 +3,8 @@ module Main where
 import Codec.TCPSegment
 import Test.QuickCheck
 import Data.List (nub, sort, tails, permutations)
+import Data.Maybe (isJust, isNothing, fromJust, mapMaybe)
 import Control.Monad (when, guard, forM_)
-import Data.Maybe (isJust, isNothing)
 import System.CPUTime (getCPUTime)
 
 -- ============================================================================
@@ -20,19 +20,19 @@ headerPSH :: NumSeq -> Dades -> [Int]
 headerPSH seq dades = 
   let tipusBits = intA8bit 0  -- PSH = 0
       numBits = intA8bit seq
-      checkBits = calcularCheckSum dades
+      checkBits = fromJust (calcularCheckSum dades)  -- Segur perquè dades són vàlides
   in tipusBits ++ numBits ++ checkBits
 
 headerACK :: NumSeq -> Dades -> [Int]
 headerACK seq dades = 
   let tipusBits = intA8bit 1  -- ACK = 1
       numBits = intA8bit seq
-      checkBits = calcularCheckSum dades
+      checkBits = fromJust (calcularCheckSum dades)  -- Segur perquè dades són vàlides
   in tipusBits ++ numBits ++ checkBits
 
 -- Helper per calcular checksum de string
 calcularCheckSumEx :: String -> CheckSum
-calcularCheckSumEx s = calcularCheckSum (D (stringA8bit s))
+calcularCheckSumEx s = fromJust (calcularCheckSum (D (stringA8bit s)))  -- Segur perquè stringA8bit sempre produeix bits vàlids
 
 -- Assert helper
 assert :: Bool -> String -> IO ()
@@ -57,7 +57,7 @@ instance Arbitrary TCPSegment where
     n <- choose (0, 255)
     lenD <- choose (0, 32) `suchThat` (\n -> n `mod` 8 == 0)
     d <- vectorOf lenD (elements [0, 1])
-    let checkCalc = calcularCheckSum (D d)
+    let checkCalc = fromJust (calcularCheckSum (D d))  -- Segur perquè d és vàlid
     return (Segment (Cap t n checkCalc) (D d))
 
 -- ============================================================================
@@ -68,8 +68,9 @@ instance Arbitrary TCPSegment where
 prop_checksumInvariant :: Dades -> Property
 prop_checksumInvariant d = 
   length (getDadesBits d) `mod` 8 == 0 ==> 
-    let check = calcularCheckSum d
-    in length check == 8 && all (`elem` [0,1]) check
+    case calcularCheckSum d of
+      Just check -> length check == 8 && all (`elem` [0,1]) check
+      Nothing -> False  -- No hauria de passar si dades són vàlides
 
 -- Propietat: Ord per NumSeq
 prop_ordreNumSeq :: TCPSegment -> TCPSegment -> Bool
@@ -85,10 +86,13 @@ prop_segmentsSenseErrorFiltraErrors =
     len <- choose (24, 40) `suchThat` (\n -> n `mod` 8 == 0)
     bs <- vectorOf len (elements [0, 1])
     return bs)) $ \segs ->
-    let segsAll = map bitsToSegment segs
+    let segsAll = mapMaybe bitsToSegment segs
         segsOK = segmentsSenseError segs
+        hasError seg = case ambError seg of
+          Just True -> True
+          _ -> False
     in length segsOK <= length segsAll && 
-       all (\s -> not (ambError s)) segsOK
+       all (\s -> not (hasError s)) segsOK
 
 -- Propietat: segmentsPSH només PSH
 prop_segmentsPSHNomésPSH :: [TCPSegment] -> Bool
@@ -118,8 +122,9 @@ prop_bitsToSegmentValid =
         fullBits = headerBits ++ dataBs
     return fullBits) $ \fullBits ->
     length fullBits >= 24 ==> 
-      let seg = bitsToSegment fullBits
-      in True  -- Si arriba aquí, és vàlid
+      case bitsToSegment fullBits of
+        Just _ -> True  -- Si retorna Just, és vàlid
+        Nothing -> False  -- No hauria de passar amb valors vàlids
 
 -- ============================================================================
 -- Manual exhaustive tests
@@ -135,9 +140,11 @@ test_manual_headerExhaustiu = do
         checkVal <- [0..3]
         return (intA8bit tipusVal ++ intA8bit numVal ++ intA8bit checkVal)
   results <- mapM (\header -> 
-    let seg = bitsToSegment (header ++ replicate 8 0)
-        tipusEsperat = toEnum (vuitBitaInt (take 8 header))
-    in return (getTipusSeg seg == tipusEsperat)) (take 64 totsHeaders)
+    case bitsToSegment (header ++ replicate 8 0) of
+      Just seg -> do
+        let tipusEsperat = toEnum (vuitBitaInt (take 8 header))
+        return (getTipusSeg seg == tipusEsperat)
+      Nothing -> return False) (take 64 totsHeaders)
   let passed = length (filter id results)
   putStrLn $ "Passats: " ++ show passed ++ "/64"
   assert (passed == 64) "Error en header exhaustiu"
@@ -148,7 +155,8 @@ test_manual_segmentsSenseError = do
   putStrLn "=== Test manual: segmentsSenseError ==="
   let dadesHo = D (stringA8bit "Ho")
       bitsOK = headerPSH 1 dadesHo ++ stringA8bit "Ho"
-      bitsError = intA8bit 0 ++ intA8bit 1 ++ (reverse (calcularCheckSum dadesHo)) ++ stringA8bit "Ho"
+      checkHo = fromJust (calcularCheckSum dadesHo)  -- Segur perquè dadesHo és vàlid
+      bitsError = intA8bit 0 ++ intA8bit 1 ++ (reverse checkHo) ++ stringA8bit "Ho"
       llistaBits = [bitsOK, bitsError]
       segsOK = segmentsSenseError llistaBits
   putStrLn $ "Segments OK: " ++ show (length segsOK)
@@ -173,12 +181,14 @@ test_exhaustiu_checksum = do
         subsetDades = take 100 totesDades
     results <- mapM (\ds -> do
       let d = D ds
-          checkCalc = calcularCheckSum d
-          segFake = Segment (Cap PSH 0 checkCalc) d
-          segError = Segment (Cap PSH 0 (reverse checkCalc)) d
-      return (length checkCalc == 8 && 
-              not (ambError segFake) && 
-              ambError segError)) subsetDades
+      case calcularCheckSum d of
+        Just checkCalc -> do
+          let segFake = Segment (Cap PSH 0 checkCalc) d
+              segError = Segment (Cap PSH 0 (reverse checkCalc)) d
+          case (ambError segFake, ambError segError) of
+            (Just False, Just True) -> return (length checkCalc == 8)
+            _ -> return False
+        Nothing -> return False) subsetDades
     let passed = length (filter id results)
     putStrLn $ "Len " ++ show len ++ ": " ++ show passed ++ "/" ++ show (length results)
 
@@ -215,7 +225,7 @@ test_bounded_valid_headers = do
         let headerBits = intA8bit tipusVal ++ intA8bit numVal ++ intA8bit checkVal
             fullBits = headerBits ++ dadesFixes
         return fullBits
-      resultat = length (filter (isJust . bitsToSegmentMaybe) totesValid)
+      resultat = length (filter (isJust . bitsToSegment) totesValid)
   endTime <- getCPUTime
   let temps = fromIntegral (endTime - startTime) / 10^12 :: Double
   putStrLn $ "Passats: " ++ show resultat ++ "/262144"
@@ -236,11 +246,12 @@ test_full_2pow24_headers = do
           when (i `mod` 1000000 == 0) $ do
             let percent = fromIntegral i * 100 `div` 16777216
             putStrLn $ "Progrés: " ++ show i ++ "/16777216 (~" ++ show percent ++ "%)"
-          let bitsHeader = intTo24Bits i
-              fullBits = bitsHeader ++ dadesFixes
-              mseg = bitsToSegmentMaybe fullBits
-          case mseg of
-            Just _ -> loop (i+1) (accumOK + 1) accumErr
+          case intTo24Bits i of
+            Just bitsHeader -> do
+              let fullBits = bitsHeader ++ dadesFixes
+              case bitsToSegment fullBits of
+                Just _ -> loop (i+1) (accumOK + 1) accumErr
+                Nothing -> loop (i+1) accumOK (accumErr + 1)
             Nothing -> loop (i+1) accumOK (accumErr + 1)
   (oks, errs) <- loop 0 0 0
   endTime <- getCPUTime
@@ -262,9 +273,13 @@ test_smallcheck_ambError :: Property
 test_smallcheck_ambError = 
   forAll (arbitrary :: Gen Dades) $ \(D ds) -> 
     length ds `mod` 8 == 0 && all (`elem` [0,1]) ds ==>
-      let checkCalc = calcularCheckSum (D ds)
-          segOK = Segment (Cap PSH 0 checkCalc) (D ds)
-      in not (ambError segOK)
+      case calcularCheckSum (D ds) of
+        Just checkCalc -> 
+          let segOK = Segment (Cap PSH 0 checkCalc) (D ds)
+          in case ambError segOK of
+               Just False -> True  -- No hi ha error
+               _ -> False
+        Nothing -> False
 
 test_smallcheck_segmentsPSH :: Property
 test_smallcheck_segmentsPSH = 

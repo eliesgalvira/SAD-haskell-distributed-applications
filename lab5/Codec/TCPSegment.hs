@@ -2,6 +2,8 @@ module Codec.TCPSegment where
 
 import Data.Char (chr)
 import Data.List (nub, sort)
+import Data.Maybe (mapMaybe)
+import Control.Monad (guard)
 
 -- ============================================================================
 -- Helper functions (Section 5)
@@ -115,69 +117,66 @@ validarBits bs = all (\b -> b == 0 || b == 1) bs
 -- Decoding functions (Section 4.2)
 -- ============================================================================
 
--- Helper: 8 bits a TipusSeg (via Enum)
-bitsToTipusSeg :: [Int] -> TipusSeg
-bitsToTipusSeg bs = 
+-- Helper: 8 bits a TipusSeg (via Enum) - retorna Nothing si invariant violat
+bitsToTipusSeg :: [Int] -> Maybe TipusSeg
+bitsToTipusSeg bs = do
+  guard (length bs == 8 && validarBits bs)
   let val = vuitBitaInt bs
-  in case val of
-       0 -> PSH
-       1 -> ACK
-       2 -> SYN
-       3 -> FIN
-       _ -> error "TipusSeg invàlid: no és 0-3"
+  case val of
+    0 -> Just PSH
+    1 -> Just ACK
+    2 -> Just SYN
+    3 -> Just FIN
+    _ -> Nothing  -- Invariant violat: TipusSeg no és 0-3
 
--- Helper: 8 bits a NumSeq (Int [0..255])
-bitsToNumSeq :: [Int] -> NumSeq
-bitsToNumSeq bs = 
+-- Helper: 8 bits a NumSeq (Int [0..255]) - retorna Nothing si invariant violat
+bitsToNumSeq :: [Int] -> Maybe NumSeq
+bitsToNumSeq bs = do
+  guard (length bs == 8 && validarBits bs)
   let val = vuitBitaInt bs
-  in if val >= 0 && val <= 255 then val 
-     else error "NumSeq fora de [0..255]"
+  guard (val >= 0 && val <= 255)  -- Invariant: NumSeq dins [0..255]
+  return val
 
--- Helper: 8 bits a CheckSum
-bitsToCheckSum :: [Int] -> CheckSum
-bitsToCheckSum bs = 
-  if length bs == 8 && validarBits bs 
-  then bs 
-  else error "CheckSum invàlid: len!=8 o bits no 0/1"
+-- Helper: 8 bits a CheckSum - retorna Nothing si invariant violat
+bitsToCheckSum :: [Int] -> Maybe CheckSum
+bitsToCheckSum bs = do
+  guard (length bs == 8 && validarBits bs)  -- Invariant: CheckSum té 8 bits vàlids
+  return bs
 
--- Funció principal: bits a TCPSegment
-bitsToSegment :: [Int] -> TCPSegment
-bitsToSegment bits = 
-  if length bits < 24 
-  then error "Segment massa curt: <24 bits"
-  else
-    let headerBits = take 24 bits
-        dataBits = drop 24 bits
-        tipusBits = take 8 headerBits
-        numBits = take 8 (drop 8 headerBits)
-        checkBits = take 8 (drop 16 headerBits)
-    in Segment (Cap (bitsToTipusSeg tipusBits) 
-                      (bitsToNumSeq numBits) 
-                      (bitsToCheckSum checkBits)) 
-               (D dataBits)
+-- Funció principal: bits a TCPSegment - retorna Nothing si invariant violat
+bitsToSegment :: [Int] -> Maybe TCPSegment
+bitsToSegment bits = do
+  guard (length bits >= 24)  -- Invariant: segment té almenys 24 bits (header)
+  let headerBits = take 24 bits
+      dataBits = drop 24 bits
+      tipusBits = take 8 headerBits
+      numBits = take 8 (drop 8 headerBits)
+      checkBits = take 8 (drop 16 headerBits)
+  tipus <- bitsToTipusSeg tipusBits
+  numSeq <- bitsToNumSeq numBits
+  checkSum <- bitsToCheckSum checkBits
+  guard (validarBits dataBits)  -- Invariant: dades són bits vàlids
+  return $ Segment (Cap tipus numSeq checkSum) (D dataBits)
 
 -- ============================================================================
 -- Error detection (Section 4.4)
 -- ============================================================================
 
--- Helper: Calcular checksum de Dades
-calcularCheckSum :: Dades -> CheckSum
-calcularCheckSum (D ds) = 
-  if length ds `mod` 8 /= 0 
-  then error "Dades no múltiple de 8 bits"
-  else if not (validarBits ds) 
-       then error "Bits invàlids en dades"
-       else
-         let chunks = parts8bits ds
-         in if null chunks 
-            then replicate 8 0
-            else mida8 (sumarBitaBit chunks)
+-- Helper: Calcular checksum de Dades - retorna Nothing si invariant violat
+calcularCheckSum :: Dades -> Maybe CheckSum
+calcularCheckSum (D ds) = do
+  guard (length ds `mod` 8 == 0)  -- Invariant: dades múltiple de 8 bits
+  guard (validarBits ds)  -- Invariant: bits vàlids (0/1)
+  let chunks = parts8bits ds
+  if null chunks 
+  then return (replicate 8 0)
+  else return (mida8 (sumarBitaBit chunks))
 
--- Funció: Detecta error si checksum rebut != calculat
-ambError :: TCPSegment -> Bool
-ambError (Segment (Cap _ _ checkRebut) dades) = 
-  let checkCalculat = calcularCheckSum dades
-  in checkRebut /= checkCalculat
+-- Funció: Detecta error si checksum rebut != calculat - retorna Nothing si invariant violat
+ambError :: TCPSegment -> Maybe Bool
+ambError (Segment (Cap _ _ checkRebut) dades) = do
+  checkCalculat <- calcularCheckSum dades
+  return (checkRebut /= checkCalculat)
 
 -- ============================================================================
 -- Processing pipeline (Section 4)
@@ -193,8 +192,12 @@ dadesToString (D ds) =
 -- Processament: Llista bits a llista segments sense error
 segmentsSenseError :: [[Int]] -> [TCPSegment]
 segmentsSenseError bitSegments = 
-  let segments = map bitsToSegment bitSegments
-  in filter (not . ambError) segments
+  let segments = mapMaybe bitsToSegment bitSegments
+      hasError seg = case ambError seg of
+        Just True -> True
+        Just False -> False
+        Nothing -> True  -- Si no es pot calcular checksum, considerar error
+  in filter (not . hasError) segments
 
 -- Filtrar PSH
 segmentsPSH :: [TCPSegment] -> [TCPSegment]
@@ -229,32 +232,11 @@ getNumSeq (Segment (Cap _ n _) _) = n
 getDadesBits :: Dades -> [Int]
 getDadesBits (D ds) = ds
 
--- Maybe version for safe testing (avoids exceptions)
-bitsToSegmentMaybe :: [Int] -> Maybe TCPSegment
-bitsToSegmentMaybe bits = 
-  if length bits < 24 
-  then Nothing
-  else
-    let headerBits = take 24 bits
-        dataBits = drop 24 bits
-        tipusBits = take 8 headerBits
-        numBits = take 8 (drop 8 headerBits)
-        checkBits = take 8 (drop 16 headerBits)
-    in if not (validarBits tipusBits) || not (validarBits numBits) || 
-          not (validarBits checkBits) || not (validarBits dataBits)
-       then Nothing
-       else
-         let valTipus = vuitBitaInt tipusBits
-             valNum = vuitBitaInt numBits
-         in if valTipus < 0 || valTipus > 3 || valNum < 0 || valNum > 255
-            then Nothing
-            else Just $ Segment (Cap (toEnum valTipus) valNum checkBits) (D dataBits)
-
--- Helper: Int (0..2^24-1) a [Int] de exactament 24 bits
-intTo24Bits :: Int -> [Int]
+-- Helper: Int (0..2^24-1) a [Int] de exactament 24 bits - retorna Nothing si invariant violat
+intTo24Bits :: Int -> Maybe [Int]
 intTo24Bits i 
-  | i < 0 || i > (2^24 - 1) = error "Fora de rang per 24 bits"
+  | i < 0 || i > (2^24 - 1) = Nothing  -- Invariant violat: fora de rang
   | otherwise = 
     let bits = intAbit i
-    in replicate (24 - length bits) 0 ++ bits
+    in Just (replicate (24 - length bits) 0 ++ bits)
 
