@@ -21,15 +21,36 @@
           QuickCheck
           smallcheck
         ]);
+
+        # Test runner for TCPSegment tests
+        testRunner = pkgs.stdenv.mkDerivation {
+          name = "sad-tests";
+          buildInputs = [ pkgs.makeWrapper ];
+          buildCommand = ''
+            mkdir -p $out/bin
+            cat > $out/bin/sad-tests <<EOF
+            #!${pkgs.bash}/bin/bash
+            set -e
+            SOURCE_DIR="${toString self}"
+            WORK_DIR=\$(mktemp -d)
+            trap "rm -rf \$WORK_DIR 2>/dev/null || true" EXIT
+            cp -r "\$SOURCE_DIR"/* "\$WORK_DIR"/
+            cd "\$WORK_DIR"
+            cabal test codec-tcp-tests
+            EOF
+            chmod +x $out/bin/sad-tests
+            wrapProgram $out/bin/sad-tests \
+              --prefix PATH : ${pkgs.cabal-install}/bin:${ghcWithPackages}/bin
+          '';
+        };
       in
       {
         # The main package - this is what users will install/run
         packages.default = myProject;
 
-        # Temporary default app: make `nix run` print Hello World
         apps.default = {
           type = "app";
-          program = "${pkgs.writeShellScriptBin "sad-hello" ''echo Hello World''}/bin/sad-hello";
+          program = "${testRunner}/bin/sad-tests";
         };
         
         # Development shell (replaces shell.nix)
