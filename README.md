@@ -66,7 +66,7 @@ nix run
 
 - **Directament a través de GitHub:**
 ```bash
-nix run github:eliesgalvira/SAD-haskell-distributed-applications
+nix run --refresh github:eliesgalvira/SAD-haskell-distributed-applications
 ```
 
 Si el vostre sistema tenia una versió antiga en memòria cau, forceu el refresc:
