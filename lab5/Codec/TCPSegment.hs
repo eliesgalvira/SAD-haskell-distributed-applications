@@ -5,9 +5,7 @@ import Data.List (nub, sort)
 import Data.Maybe (mapMaybe)
 import Control.Monad (guard)
 
--- ============================================================================
--- Helper functions (Section 5)
--- ============================================================================
+-- Funcions útils (Secció 5)
 
 -- Converteix un enter positiu a la seva representació binària
 -- [b_0, b_1, ... , b_{n-2}, b_{n-1}]
@@ -75,9 +73,7 @@ sumarBitaBit :: [[Int]] -> [Int]
 sumarBitaBit [] = []
 sumarBitaBit xs = foldr (\ys zs -> sumBitaBit ys zs) (replicate (length (head xs)) 0) xs
 
--- ============================================================================
--- Data types (Section 2)
--- ============================================================================
+-- Tipus de dades (Secció 2)
 
 -- 1. NumSeq: Nou nom per Int
 type NumSeq = Int
@@ -113,9 +109,7 @@ instance Ord TCPSegment where
 validarBits :: [Int] -> Bool
 validarBits bs = all (\b -> b == 0 || b == 1) bs
 
--- ============================================================================
--- Decoding functions (Section 4.2)
--- ============================================================================
+-- Decodificació de funcions (Secció 4.2)
 
 -- Helper: 8 bits a TipusSeg (via Enum) - retorna Nothing si invariant violat
 bitsToTipusSeg :: [Int] -> Maybe TipusSeg
@@ -158,9 +152,7 @@ bitsToSegment bits = do
   guard (validarBits dataBits)  -- Invariant: dades són bits vàlids
   return $ Segment (Cap tipus numSeq checkSum) (D dataBits)
 
--- ============================================================================
--- Error detection (Section 4.4)
--- ============================================================================
+-- Detecció d'errors (Secció 4.4)
 
 -- Helper: Calcular checksum de Dades - retorna Nothing si invariant violat
 calcularCheckSum :: Dades -> Maybe CheckSum
@@ -178,9 +170,7 @@ ambError (Segment (Cap _ _ checkRebut) dades) = do
   checkCalculat <- calcularCheckSum dades
   return (checkRebut /= checkCalculat)
 
--- ============================================================================
--- Processing pipeline (Section 4)
--- ============================================================================
+-- Processament de pipeline (Secció 4)
 
 -- Helper: Dades a String (chunks de 8 bits a Char)
 dadesToString :: Dades -> String
@@ -218,11 +208,9 @@ decodificarMissatge bitSegments =
       dadesConcat = concatMap (\(Segment _ d) -> dadesToString d) unicsOrdenats
   in dadesConcat
 
--- ============================================================================
--- Helper functions for testing
--- ============================================================================
+-- Helpers per a tests
 
--- Getter functions for testing
+-- Getter per a tests
 getTipusSeg :: TCPSegment -> TipusSeg
 getTipusSeg (Segment (Cap t _ _) _) = t
 
