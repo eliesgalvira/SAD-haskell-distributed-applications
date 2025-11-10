@@ -227,4 +227,3 @@ intTo24Bits i
   | otherwise = 
     let bits = intAbit i
     in Just (replicate (24 - length bits) 0 ++ bits)
-
