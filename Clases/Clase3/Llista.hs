@@ -14,11 +14,7 @@ numElems :: Llista a -> Int
 numElems Buida = 0
 numElems (N _ xs) = 1 + numElems xs
 
--- Amb la ll
-connect
-follow me on x or 🦋, view my code on github, have a quick chat with me, or email me at contact@obnol.com
-
-ista de haskell
+-- Amb la llista de haskell
 -- LLista no buida
 primer :: [a] -> a
 primer (x:_) = x
