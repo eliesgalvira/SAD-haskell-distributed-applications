@@ -185,7 +185,11 @@ formatejarBindCf str = undefined
 -- l'string original convertit a  maj/min, amb la primera lletra maj/min
 -- i un caracter al final DEPENEN de la configuració que hi hagi a la fitxa.
 formatejarDoCf :: String -> CapsaF FitxaStrings String
-formatejarDoCf str = undefined
+formatejarDoCf str = do
+    majMin <- majMinCf str
+    majInici <- majIniciCf majMin
+    carFin <- carFinCf majInici
+    pure carFin
 
 -- Exemples:
 
