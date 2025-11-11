@@ -333,8 +333,8 @@ exFormatCfmb4 = treureCfMb (formatejarCfmb "1cervAntes") confMb3
 
 -- fmap :: (b -> c) -> CapsaFmb a b -> CapsaFmb a c
 instance Functor (CapsaFmb a) where  
-    fmap f (Cfmb g) = Cfmb h
-            where h = (f <$>) . g
+    fmap f (Cfmb g) = Cfmb h -- g va de a -> Maybe b, f va de b -> c, h va de a -> Maybe c
+            where h ftx = fmap f (g ftx) -- fmap de Maybe
 
 -- CapsaFmb  Applicative
 -- (<*>) :: Applicative f => f (a -> b) -> f a -> f b
