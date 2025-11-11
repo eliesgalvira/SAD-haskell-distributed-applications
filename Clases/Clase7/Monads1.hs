@@ -140,7 +140,7 @@ conf :: FitxaStrings
 conf = FitxaS {majMin = "min" , majIni = True, carFi = '.'}
 
 recuperarFitxa :: FitxaStrings
-recuperarFitxa = undefined
+recuperarFitxa = produirValorCf fitxaCf conf
 
 
 -------------------------------------------------------------------------------
