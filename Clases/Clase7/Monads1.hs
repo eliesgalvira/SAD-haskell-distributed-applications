@@ -218,6 +218,8 @@ instance Functor (CapsaF a) where
 
 
 -- CapsaF  Applicative
+-- pure :: b -> CapsaF a b
+-- (<*>) :: t (b -> c) -> t b -> t c
 -- (<*>) :: CapsaF a (b -> c) -> CapsaF a b -> CapsaF a c
 instance Applicative (CapsaF a) where  
     pure elem = Cf (\_ -> elem) 
