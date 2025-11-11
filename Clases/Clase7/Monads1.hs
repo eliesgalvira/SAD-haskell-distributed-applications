@@ -114,10 +114,13 @@ el que hi ha dins la capsa quan s'obre depen de la fitxa que hi hem posat
 
 data CapsaF a b = Cf (a -> b)
 
+-- Tinc una Capsa a b, on hi introduim un a i obtenim un b.
+-- La funció g que va de a -> b agafa la fitxa ftx de tipus a i retorna un b.
 produirValorCf :: CapsaF a b -> a -> b
 produirValorCf (Cf g) ftx = g ftx
 
 -- per treure de la capsa es necessita una fitxa.
+-- Capsa identitat, idèntic a fitxaCf = Cf id, és a dir, produirValorCf fitxaCf = id.
 fitxaCf :: CapsaF a a
 fitxaCf = Cf (\ftx -> ftx)
 
