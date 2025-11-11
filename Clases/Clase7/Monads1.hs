@@ -149,10 +149,12 @@ recuperarFitxa = produirValorCf fitxaCf conf
 
 -- donat un string retorna una capsa, la qual si se li passa una fitxa, produira
 -- l'string original converteix a majuscules o minuscules depenen de la fitxa
+-- Prova: produirValorCf (majMinCf "HOLA") conf
 majMinCf :: String -> CapsaF FitxaStrings String
-majMinCf str = undefined
-
-
+majMinCf str = do
+    fitxa <- fitxaCf
+    if majMin fitxa == "min" then pure $ fmap toLower str
+                             else pure $ fmap toUpper str
 
 -- donat un string retorna una capsa, la qual si se li passa una fitxa, produira
 -- l'string original amb la primera lletra a majuscula o minuscula 
