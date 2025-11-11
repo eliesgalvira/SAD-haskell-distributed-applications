@@ -160,7 +160,10 @@ majMinCf str = do
 -- l'string original amb la primera lletra a majuscula o minuscula 
 -- depenen de la fitxa 
 majIniciCf :: String -> CapsaF FitxaStrings String
-majIniciCf str = undefined
+majIniciCf str = do
+    fitxa <- fitxaCf
+    if majIni fitxa then pure $ toUpper (head str) : tail str
+                    else pure $ toLower (head str) : tail str
 
 -- donat un string retorna una capsa, la qual si se li passa una fitxa, produira
 -- l'string original amb el caracter que hi ha a la fitxa al final 
