@@ -55,7 +55,7 @@
         
         # Development shell (replaces shell.nix)
         devShells.default = pkgs.mkShell {
-          buildInputs = [ ghcWithPackages pkgs.cabal-install ];
+          buildInputs = [ ghcWithPackages pkgs.cabal-install haskellPackages.haskell-language-server ];
           shellHook = ''
             echo "=== Haskell Project Shell with HUnit ==="
             echo "GHC version: $(ghc --version | head -n1)"

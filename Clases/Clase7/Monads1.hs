@@ -1,3 +1,5 @@
+module Clases.Clase7.Monads1 where
+
 import Data.Char
 
 

@@ -1,7 +1,10 @@
+module Lab6 where
+
 import Data.List
 import Data.Maybe
 import Data.Char
 import Control.Applicative
+import Codec.TCPSegment
 
 ---------------------------------------------------------------------------------------------------------------------
 
@@ -24,15 +27,17 @@ instance Functor Analitzador where
 
 instance Applicative Analitzador where
     pure x = Analitzador $ \input -> Just (x, input)
-    (Analitzador ffi) <*> (Analitzador fv) = Analitzador $ \input -> do
-        (f, inputAfterFunction) <- ffi input     -- Primer: analitza la funció
-        (v, inputAfterValue) <- fv inputAfterFunction  -- Segon: analitza el valor
-        let result = f v                          -- Aplica la funció al valor
-        return (result, inputAfterValue)          -- Retorna el resultat
+    (Analitzador ffi) <*> (Analitzador fv) = Analitzador fb
+        where fb input =
+                case ffi input of
+                    Nothing -> Nothing
+                    Just (f, outputString1) -> case fv outputString1 of
+                        Nothing -> Nothing
+                        Just (v, outputString2) -> Just (f v, outputString2)
 
 instance Alternative Analitzador where
     empty = Analitzador (\x -> Nothing)
-    p1 <|> p2 = Analitzador (\x -> p1 x <|> p2 x)
+    p1 <|> p2 = Analitzador (\x -> execAnalitzador p1 x <|> execAnalitzador p2 x) -- execAnalitzador extreu la funció interna de Analitzador perque es un Named Field.
 
 {-
  'complirA' té com a parametre una funcio que representa un predicat
@@ -98,7 +103,7 @@ enterPosA = Analitzador f
  predicat i una llista amb la resta de valors
 
 
-  ghci> primerTram (isDigit) "1234abc1234"
+  ghci> primerTram (isDigit) "1234abc"
   ("1234","abc1234")
 
 -}
@@ -140,7 +145,7 @@ si falla d'entrada) i retorna una llista dels resultats.
 capOmes sempre te exit.
 -}
 capOmes :: Analitzador a -> Analitzador [a]
-capOmes p = undefined
+capOmes p = many p
 
 -- Exemples capOmes
 eXcapOmes1 = execAnalitzador (capOmes enterPosA) "123abc"
@@ -158,7 +163,7 @@ Si l'analitzador d'entrada falla la primera vegada llavors
 unaOmes tambe falla.
 -}
 unaOmes :: Analitzador a -> Analitzador [a]
-unaOmes p =  undefined
+unaOmes p = some p
 
 -- Exemples unaOmes
 eXunaOmes1 = execAnalitzador (unaOmes enterPosA) "123abc"
@@ -196,7 +201,7 @@ ghci> execAnalitzador espaisA "abc    "
 Just ("","abc    ")
 -}
 espaisA :: Analitzador String
-espaisA = undefined
+espaisA = many (complirA isSpace)
 
 
 {-
@@ -216,14 +221,14 @@ Nothing
 -}
 
 bitCharA :: Analitzador Char
-bitCharA = undefined
+bitCharA = complirA (\c -> c == '0' || c == '1')
 
 {- 
  Igual que bitCharA pero en cas d'exit el 
  resultat de l'analitzador es un enter
 -}
 bitA :: Analitzador Int
-bitA = undefined
+bitA = fmap (\c -> read [c]) bitCharA
 
 
 {-
@@ -231,7 +236,7 @@ bitA = undefined
  comença per  un seguit de '0's i/o '1's 
 -}
 bitsA :: Analitzador [Int]
-bitsA = undefined
+bitsA = many bitA
 
 
 coincideix :: String -> Analitzador String 
@@ -263,7 +268,7 @@ Just 'a'
 -}
 
 tipusSegA :: Analitzador TipusSeg
-tipusSegA = undefined
+tipusSegA = (PSH <$ coincideix "PSH") <|> (ACK <$ coincideix "ACK") <|> (SYN <$ coincideix "SYN") <|> (FIN <$ coincideix "FIN")
 
 {-
 Observacions:
@@ -336,8 +341,9 @@ espCaracteResp c = undefined
 
 -}
 
-capçaleraA :: Analitzador Capçalera
-capçaleraA = undefined
+capçaleraA :: Analitzador Capcalera
+capçaleraA = Cap <$> (espaisA *> caracterA '<' *> espaisA *> tipusSegA) <*> (espaisA *> enterPosA) <*> (espaisA *> checkSumA) <* espaisA <* caracterA '>' <* espaisA
+  where checkSumA = sequenceA (replicate 8 bitA)
 
 
 
