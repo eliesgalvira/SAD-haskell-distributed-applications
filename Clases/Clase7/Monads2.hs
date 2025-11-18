@@ -169,17 +169,11 @@ exEntersPsd = execEstat llistaEntersPsd "abcd"
 ---------------------------------------------------------------------
 
 instance Functor (Estat e) where
-    fmap f (Estat g) = Estat (\s -> let (x, s') = g s in (f x, s'))
+    fmap f (Estat g) = undefined
 
 instance Applicative (Estat e) where
-    pure x = Estat (\s -> (x, s))
-    (Estat fg) <*> (Estat fx) = Estat (\s ->
-        let (f, s') = fg s
-            (x, s'') = fx s'
-        in (f x, s''))
+    pure x = undefined
+    (Estat fg) <*> (Estat fx) = undefined
 
 instance Monad (Estat e) where
-    (Estat fx) >>= g = Estat (\s ->
-        let (x, s') = fx s
-            (Estat fy) = g x
-        in fy s')
+    (Estat fx) >>= g = undefined
