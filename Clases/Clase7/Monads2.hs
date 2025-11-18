@@ -111,7 +111,12 @@ oposatBind = treure >>= (\x -> posar ((-1)*x) )
 
 -- posar un enter i obtenir la pila amb l'enter 
 ex1 :: ([Integer], [Integer])
-ex1 =  undefined
+ex1 = execEstat (do
+                posar 5
+                obtenir
+                )
+                [10, 11]
+
 
 -- posar un enter i obtenir la pila amb l'enter 
 ex1Bind =  undefined
@@ -164,11 +169,17 @@ exEntersPsd = execEstat llistaEntersPsd "abcd"
 ---------------------------------------------------------------------
 
 instance Functor (Estat e) where
-    fmap f (Estat g) = undefined
+    fmap f (Estat g) = Estat (\s -> let (x, s') = g s in (f x, s'))
 
 instance Applicative (Estat e) where
-    pure x = undefined
-    (Estat fg) <*> (Estat fx) = undefined
+    pure x = Estat (\s -> (x, s))
+    (Estat fg) <*> (Estat fx) = Estat (\s ->
+        let (f, s') = fg s
+            (x, s'') = fx s'
+        in (f x, s''))
 
 instance Monad (Estat e) where
-    (Estat fx) >>= g = undefined
+    (Estat fx) >>= g = Estat (\s ->
+        let (x, s') = fx s
+            (Estat fy) = g x
+        in fy s')
