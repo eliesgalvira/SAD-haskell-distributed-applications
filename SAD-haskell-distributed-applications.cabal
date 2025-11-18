@@ -9,8 +9,9 @@ library
       Codec.TCPSegment
       Lab6
       Clases.Clase7.Monads1
+      Clases.Clase7.Monads2
   hs-source-dirs: ., lab3, lab4, lab5, lab6, Clases
-  build-depends: base
+  build-depends: base, hashable
   default-language: GHC2021
 
 test-suite lab3-tests

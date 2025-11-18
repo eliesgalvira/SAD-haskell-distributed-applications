@@ -36,6 +36,7 @@ instance Applicative Analitzador where
                         Just (v, outputString2) -> Just (f v, outputString2)
 
 instance Alternative Analitzador where
+    empty :: Analitzador a
     empty = Analitzador (\x -> Nothing)
     p1 <|> p2 = Analitzador (\x -> execAnalitzador p1 x <|> execAnalitzador p2 x) -- execAnalitzador extreu la funció interna de Analitzador perque es un Named Field.
 

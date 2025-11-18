@@ -1,7 +1,6 @@
-import Control.Monad.State
+module Clases.Clase7.Monads2 where
 
 import Data.Hashable
--- stack install hashable 
 import Data.Int
 import Data.Char
 
@@ -13,22 +12,22 @@ data Estat e a = Estat (e -> (a, e))
 
 -- extreu la funció
 execEstat :: Estat e a -> e -> (a, e)
-execEstat (Estat g) = undefined
+execEstat (Estat g) = g
 
 -- retorna la funcio que aplicada un estat
 -- retona el valor resultat
 execValor :: Estat e a -> e -> a
-execValor (Estat g) = undefined
+execValor (Estat g) = fst . g
 
 
 -- obtenir l'estat
 obtenir :: Estat e e
-obtenir = undefined
+obtenir = Estat $ \est -> (est, est)
 
 
 -- canviar l'estat
 canviar :: e -> Estat e ()
-canviar est = undefined
+canviar est = Estat $ \_ -> ((), est)
 
 
 ---------------------------------------------------------------------
@@ -37,12 +36,14 @@ canviar est = undefined
 
 -- insereix un enter a la pila
 posar :: Integer -> Estat [Integer] ()
--- posar i =  undefined
-posar i =  undefined
+-- posar i =  Estat $ \est -> ((), i:est)
+posar i = do
+    pila <- obtenir
+    canviar (i:pila)
 
 -- insereix un enter a la pila
 posarBind :: Integer -> Estat [Integer] ()
-posarBind i =  undefined
+posarBind i = obtenir >>= (\pila -> canviar (i:pila) )
 
 -- Treu el primer element de la pila
 -- Precondicio: Llista no buida
@@ -155,5 +156,4 @@ instance Applicative (Estat e) where
     (Estat fg) <*> (Estat fx) = undefined
 
 instance Monad (Estat e) where
-    return = undefined
     (Estat fx) >>= g = undefined
