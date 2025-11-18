@@ -10,6 +10,7 @@ library
       Lab6
       Clases.Clase7.Monads1
       Clases.Clase7.Monads2
+      Clases.Clase9.MonadIO
   hs-source-dirs: ., lab3, lab4, lab5, lab6, Clases
   build-depends: base, hashable
   default-language: GHC2021

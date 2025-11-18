@@ -48,46 +48,61 @@ posarBind i = obtenir >>= (\pila -> canviar (i:pila) )
 -- Treu el primer element de la pila
 -- Precondicio: Llista no buida
 treure :: Estat [Integer] Integer
-treure =  undefined
+treure = do
+    pila <- obtenir
+    canviar (tail pila)
+    pure (head pila)
 
 -- Treu el primer element de la pila
 -- Precondicio: pila no buida
 treureBind :: Estat [Integer] Integer
-treureBind =  undefined
+treureBind =  obtenir >>= (\pila -> canviar (tail pila) >> pure (head pila) )
 
 -- Consulta el primer element de la pila (sense treure'l)
 -- Precondicio: pila no buida
 ultim :: Estat [Integer] Integer
-ultim =  undefined
+-- ultim = do head <$> obtenir
+ultim = do
+    pila <- obtenir
+    pure (head pila)
 
 -- Consulta el primer element de la pila (sense treure'l)
 -- Precondicio: pila no buida
 ultimBind :: Estat [Integer] Integer
-ultimBind =  undefined
+ultimBind =  obtenir >>= (\pila -> pure (head pila) )
+
 -- Treu els 2 primers enters de la pila 
 -- fa la suma i la torna a posar a la pila
 sumar :: Estat [Integer] ()
-sumar =  undefined
+sumar = do
+    x <- treure
+    y <- treure
+    posar (x + y)
 
 -- Treu els 2 primers enters de la pila 
 -- fa la suma i la torna a posar a la pila
 sumarBind :: Estat [Integer] ()
-sumarBind =  undefined
+sumarBind = treure >>= (\x -> treure >>= (\y -> posar (x + y)) )
 
 
 -- Treu els 2 primers enters de la pila 
 -- els multiplica i posa el resultat a la pila
 mult :: Estat [Integer] ()
-mult =  undefined
+mult = do
+    x <- treure
+    y <- treure
+    posar (x * y)
 
 -- Treu els 2 primers enters de la pila 
 -- els multiplica i posa el resultat a la pila
 multBind :: Estat [Integer] ()
-multBind =  undefined
+multBind =  treure >>= (\x -> treure >>= (\y -> posar (x * y)) )
 
 -- Canvia el signe del primer element de la pila
 oposat :: Estat [Integer] ()
-oposat =  undefined
+oposat = do
+    x <- treure
+    posar ((-1)*x)
 
 -- Canvia el signe del primer element de la pila
 oposatBind :: Estat [Integer] ()
