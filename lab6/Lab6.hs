@@ -237,7 +237,7 @@ bitA = fmap (\c -> read [c]) bitCharA
  comença per  un seguit de '0's i/o '1's 
 -}
 bitsA :: Analitzador [Int]
-bitsA = many bitA
+bitsA = capOmes (espaisA *> bitA <* espaisA)
 
 
 coincideix :: String -> Analitzador String 
@@ -322,7 +322,7 @@ Observacions:
 
 -}
 espCaracteResp :: Char -> Analitzador Char
-espCaracteResp c = undefined
+espCaracteResp c = espaisA *> caracterA c <* espaisA
 
 
 
@@ -365,7 +365,7 @@ capçaleraA = Cap <$> (espaisA *> caracterA '<' *> espaisA *> tipusSegA) <*> (es
 
 
 dadesA :: Analitzador Dades
-dadesA = undefined
+dadesA = fmap D (espCaracteResp '{' *> bitsA <* espCaracteResp '}')
 
 
 dades01 = " { 101010010101   01010101001    000 111 0 0 0 1 1 1  }  "
@@ -384,11 +384,38 @@ dades01 = " { 101010010101   01010101001    000 111 0 0 0 1 1 1  }  "
 segmentPSH123 = "  <   PSH 123  01010101  >  {  011001100 110100 101100  001 }  "
 
 segmentA :: Analitzador TCPSegment
-segmentA = undefined
+segmentA = fmap Segment capçaleraA <*> dadesA
 
 
 segmentsProcessats = " <  ACK  68    00000000     >     { }   <  PSH  144    00010110     >    {    01101110011000110111010001101111   }  <     ACK   82   00000000 >   {     }  <  PSH   136 01001101   > {  1 0 1 0000   10010010   10010  01010  1001100  }  <   SYN   120   00000000  > {  }    <    PSH  140   01000000 > {  0  11100  11001  00000  01100 110  0111 0101   }    <  PSH   120  00111111   > { 010000 10011 0010101    10111   0011   10110 }  <   ACK   144  00000000 >    {     }   <    PSH  140   01000000 > {  0  10100  11001  00000  01110 110  1111 0101   }    <   PSH 124  00010101  >     {   011   010010  1101110  01100111  01110101   } <FIN 234 00000000  >{     }   < PSH  128     01011001>   {    0  1110  10000100000011000010110110  0  }<PSH 132  01001100  > {  00100   000011   01101011   01111  011011  1 0  }  <  PSH   120  00111111   > { 010000 10011 0010101    10111   0011   10110 }   <  PSH   136 01001101   > {  0 0 1 0000   00110010   00110  01010  1101100  }  <FIN 234 00000000  >{     }     <     PSH  148    00100000  >  {  0111   00100  11100  1100100001  }"
 
 
 segmentsA :: Analitzador [TCPSegment]
-segmentsA = undefined
+segmentsA = capOmes segmentA
+
+
+{-|
+  Decodifica una cadena amb múltiples segments TCP textuals reutilitzant les
+  funcions del laboratori 5. El pipeline és:
+
+    1. Analitzar tots els segments amb 'segmentsA'.
+    2. Descarta els que tenen error de checksum amb 'ambError'.
+    3. Filtra només els PSH amb 'segmentsPSH'.
+    4. Elimina duplicats i ordena'ls amb 'segmentsUnicsOrdenats'.
+    5. Concatena les dades textuals via 'dadesToString'.
+-}
+decodificaSegmentsTextuals :: String -> Maybe String
+decodificaSegmentsTextuals entrada = do
+  (segs, rest) <- execAnalitzador segmentsA entrada
+  let senseError = filter (not . teError) segs
+      pshSegs = segmentsPSH senseError
+      ordenats = segmentsUnicsOrdenats pshSegs
+      missatge = concatMap extreureDades ordenats
+  pure missatge
+  where
+    teError seg = fromMaybe True (ambError seg)
+    extreureDades (Segment _ dades) = dadesToString dades
+
+
+missatgeProcessat :: Maybe String
+missatgeProcessat = decodificaSegmentsTextuals segmentsProcessats

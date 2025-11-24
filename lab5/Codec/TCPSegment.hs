@@ -183,11 +183,11 @@ dadesToString (D ds) =
 segmentsSenseError :: [[Int]] -> [TCPSegment]
 segmentsSenseError bitSegments = 
   let segments = mapMaybe bitsToSegment bitSegments
-      hasError seg = case ambError seg of
+      teError seg = case ambError seg of
         Just True -> True
         Just False -> False
         Nothing -> True  -- Si no es pot calcular checksum, considerar error
-  in filter (not . hasError) segments
+  in filter (not . teError) segments
 
 -- Filtrar PSH
 segmentsPSH :: [TCPSegment] -> [TCPSegment]
