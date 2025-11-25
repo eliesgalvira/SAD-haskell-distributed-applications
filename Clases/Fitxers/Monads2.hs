@@ -1,4 +1,4 @@
-module Clases.Clase7.Monads2 where
+module Clases.Fitxers.Monads2 where
 
 import Data.Hashable
 import Data.Int
@@ -147,18 +147,31 @@ execEx3 =  undefined
 -- mateixa
 
 enterPsd :: Estat String Int
-enterPsd =  undefined
+enterPsd =  do
+    llavor <- obtenir
+    let psdAleatori = hash llavor
+    canviar (llavor ++ reverse llavor)
+    pure psdAleatori
 
 
 tupla4EntersPsd :: Estat String (Int,Int,Int,Int)
-tupla4EntersPsd = undefined
+tupla4EntersPsd = do
+    a <- enterPsd
+    b <- enterPsd
+    c <- enterPsd
+    d <- enterPsd
+    pure (a,b,c,d)
 
 -- quin valor retorna?
 tupla4ValorsPsd = execValor tupla4EntersPsd "b"
 
 
 llistaEntersPsd :: Estat String [Int]
-llistaEntersPsd =  undefined
+llistaEntersPsd = do
+    a <- enterPsd
+    b <- enterPsd
+    c <- enterPsd
+    pure [a,b,c]
 
 exEntersPsd = execEstat llistaEntersPsd "abcd"
 
@@ -169,11 +182,19 @@ exEntersPsd = execEstat llistaEntersPsd "abcd"
 ---------------------------------------------------------------------
 
 instance Functor (Estat e) where
-    fmap f (Estat g) = undefined
+    fmap f (Estat g) = Estat $ \est ->
+        let (a, est') = g est
+        in (f a, est')
 
 instance Applicative (Estat e) where
-    pure x = undefined
-    (Estat fg) <*> (Estat fx) = undefined
+    pure x = Estat $ \est -> (x, est)
+    (Estat fg) <*> (Estat fx) = Estat $ \est ->
+        let (f, est1) = fg est
+            (x, est2) = fx est1
+        in (f x, est2)
 
 instance Monad (Estat e) where
-    (Estat fx) >>= g = undefined
+    (Estat fx) >>= g = Estat $ \est ->
+        let (x, est1) = fx est
+            Estat gx = g x
+        in gx est1

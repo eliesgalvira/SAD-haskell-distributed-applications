@@ -48,6 +48,7 @@ Consell: manteniu GHCi obert mentre codeu i useu `:r` per a bucle curt d’edici
 - **Tipifiqueu** sempre les funcions exportades; facilita la lectura i els errors de tipus precoços.
 - **Descomposeu** en funcions petites i pures; faciliteu proves i raonament.
 - **Afegiu proves** o propietats (p. ex. QuickCheck) quan hi hagi lògica no trivial.
+- **Indentació consistent**: el projecte força 4 espais per a fitxers Haskell (`.hs`, `.lhs`, etc.) mitjançant `.editorconfig`.
 
 ### Recursos útils
 - [Nix — Manual](https://nixos.org/manual/nix/stable/)
