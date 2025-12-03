@@ -1,67 +1,68 @@
 module Lab6 where
 
+import Codec.TCPSegment
+import Control.Applicative
+import Data.Char
 import Data.List
 import Data.Maybe
-import Data.Char
-import Control.Applicative
-import Codec.TCPSegment
 
 ---------------------------------------------------------------------------------------------------------------------
 
 {-
 Un analitzador per un tipus a es una funcio que te com a parametre
-un String que es el contingut a analitzar. 
+un String que es el contingut a analitzar.
 Si l'analisi:
  -  te exit la sortida es el valor analitzat juntament amb la resta de l'entrada,
  - si falla la sortida es Nothing.
 -}
 
-
-newtype Analitzador a = Analitzador { execAnalitzador :: String -> Maybe (a, String) }
-
+newtype Analitzador a = Analitzador {execAnalitzador :: String -> Maybe (a, String)}
 
 instance Functor Analitzador where
-    fmap f (Analitzador g) = Analitzador $ \str -> case g str of
-      Nothing -> Nothing
-      Just (x, s) -> Just (f x, s)
+  fmap f (Analitzador g) = Analitzador $ \str -> case g str of
+    Nothing -> Nothing
+    Just (x, s) -> Just (f x, s)
 
 instance Applicative Analitzador where
-    pure x = Analitzador $ \input -> Just (x, input)
-    (Analitzador ffi) <*> (Analitzador fv) = Analitzador fb
-        where fb input =
-                case ffi input of
-                    Nothing -> Nothing
-                    Just (f, outputString1) -> case fv outputString1 of
-                        Nothing -> Nothing
-                        Just (v, outputString2) -> Just (f v, outputString2)
+  pure x = Analitzador $ \input -> Just (x, input)
+  (Analitzador ffi) <*> (Analitzador fv) = Analitzador fb
+    where
+      fb input =
+        case ffi input of
+          Nothing -> Nothing
+          Just (f, outputString1) -> case fv outputString1 of
+            Nothing -> Nothing
+            Just (v, outputString2) -> Just (f v, outputString2)
 
 instance Alternative Analitzador where
-    empty :: Analitzador a
-    empty = Analitzador (\x -> Nothing)
-    p1 <|> p2 = Analitzador (\x -> execAnalitzador p1 x <|> execAnalitzador p2 x) -- execAnalitzador extreu la funció interna de Analitzador perque es un Named Field.
+  empty :: Analitzador a
+  empty = Analitzador (\x -> Nothing)
+
+  p1 <|> p2 = Analitzador f
+    where
+      -- execAnalitzador extreu la funció interna de Analitzador perque es un Named Field.
+      f x = execAnalitzador p1 x <|> execAnalitzador p2 x
 
 {-
  'complirA' té com a parametre una funcio que representa un predicat
- sobre un Char i té com a resultat un analitzador. 
- Aquest analitzador: 
+ sobre un Char i té com a resultat un analitzador.
+ Aquest analitzador:
     - te exit nomes si veu un Char que compleix el predicat
-      (que alhora es el Char retornat per l'analitzador). 
+      (que alhora es el Char retornat per l'analitzador).
     - si troba un caracter que no compleix el predicat (o l'entrada
       es buida) llavors falla i la sortida es Nothing.
 -}
 
-
 complirA :: (Char -> Bool) -> Analitzador Char
 complirA predicat = Analitzador f
   where
-    f [] = Nothing    -- falla si l'entrada es buida
-    f (x:xs)           
-        -- Comprova si x compleix el predicat
-        | predicat x       = Just (x, xs) -- si es que si
-                                   -- retorna x i la resta de 
-                                   -- l'entrada (es a dir, xs)
-
-        | otherwise = Nothing  -- altrament, falla
+    f [] = Nothing -- falla si l'entrada es buida
+    f (x : xs)
+      -- Comprova si x compleix el predicat
+      | predicat x = Just (x, xs) -- si es que si
+      -- retorna x i la resta de
+      -- l'entrada (es a dir, xs)
+      | otherwise = Nothing -- altrament, falla
 
 {-
  Mijançant complirA, es pot definir un analitzador - caracterA crctr -
@@ -94,33 +95,28 @@ enterPosA :: Analitzador Int
 enterPosA = Analitzador f
   where
     f xs
-      | null enters   = Nothing
+      | null enters = Nothing
       | otherwise = Just (read enters, elQueQueda)
-      where (enters, elQueQueda) = primerTram isDigit xs
+      where
+        (enters, elQueQueda) = primerTram isDigit xs
 
 {-
  Donada una llista la sortida es una llista amb
  els primers valor consecutius que compleixen el
  predicat i una llista amb la resta de valors
 
-
   ghci> primerTram (isDigit) "1234abc"
   ("1234","abc1234")
 
 -}
 
-
-
-
-
 primerTram :: (a -> Bool) -> [a] -> ([a], [a])
-primerTram _ [] = ([],[])
-primerTram predicat (x:xs)
-                | predicat x = let (tmpP, tmpR) = primerTram predicat xs 
-                               in (x:tmpP, tmpR)
-                | otherwise = ([],x:xs)
-
-
+primerTram _ [] = ([], [])
+primerTram predicat (x : xs)
+  | predicat x =
+      let (tmpP, tmpR) = primerTram predicat xs
+       in (x : tmpP, tmpR)
+  | otherwise = ([], x : xs)
 
 {- Exemple:
 data Producte = P {codi :: Char, quantitat :: Int}
@@ -129,7 +125,6 @@ data Producte = P {codi :: Char, quantitat :: Int}
 analitzarProducte :: Analitzador Producte
 analitzarProducte = P <$> complirA isUpper <*> enterPosA
 
-
 ghci> execAnalitzador analitzarProducte "B345"
 Just (P {codi = 'B', quantitat = 345},"")
 
@@ -137,11 +132,9 @@ ghci> execAnalitzador analitzarProducte "345B"
 Nothing
 -}
 
-
-
 {-
-capOmes te com a entrada un analitzador i l'executa repetidament 
-tantes vegades com sigui possible (que pot ser cap vegada, 
+capOmes te com a entrada un analitzador i l'executa repetidament
+tantes vegades com sigui possible (que pot ser cap vegada,
 si falla d'entrada) i retorna una llista dels resultats.
 capOmes sempre te exit.
 -}
@@ -150,14 +143,15 @@ capOmes p = many p
 
 -- Exemples capOmes
 eXcapOmes1 = execAnalitzador (capOmes enterPosA) "123abc"
+
 -- Just ([123],"abc")
 
 eXcapOmes2 = execAnalitzador (capOmes enterPosA) "abc123"
+
 -- Just ([],"abc123")
 
-
 {-
-unaOmes te com a entrada un analitzador i l'executa repetidament 
+unaOmes te com a entrada un analitzador i l'executa repetidament
 tantes vegades com sigui possible, pero a diferencia de capOmes
 requereix que l'analitzador d'entrada tingui exit almenys una vegada.
 Si l'analitzador d'entrada falla la primera vegada llavors
@@ -168,24 +162,24 @@ unaOmes p = some p
 
 -- Exemples unaOmes
 eXunaOmes1 = execAnalitzador (unaOmes enterPosA) "123abc"
+
 -- Just ([123],"abc")
 
 eXunaOmes2 = execAnalitzador (unaOmes enterPosA) "abc123"
+
 -- Nothing
 -- Observar la diferencia amb capOmes
 
-{- Observacions: 
+{- Observacions:
 
-- Per analitzar una o mes execucions d'un analitzador anltzdr, 
-  executar anltzdr una vegada i despres analitzar cap o mes 
+- Per analitzar una o mes execucions d'un analitzador anltzdr,
+  executar anltzdr una vegada i despres analitzar cap o mes
   vegades l'execucio d'anltzdr.
 
 - Per analitzar cap o mes execucions d'un analitzador anltzdr,
-  executar anltzdr una vegada o mes i si falla retornar la 
+  executar anltzdr una vegada o mes i si falla retornar la
   llista buida.
 -}
-
-
 
 {-
 espaisA analitza una llista consecutiva de cap o mes espais en blanc.
@@ -198,12 +192,11 @@ Exemples:
 ghci> execAnalitzador espaisA "     abc"
     Just ("     ","abc")
 
-ghci> execAnalitzador espaisA "abc    " 
+ghci> execAnalitzador espaisA "abc    "
 Just ("","abc    ")
 -}
 espaisA :: Analitzador String
 espaisA = many (complirA isSpace)
-
 
 {-
 bitCharA analitza un caracter i te exit si es '0' o '1'.
@@ -211,54 +204,53 @@ Altrament falla.
 
 Exemples:
 
-ghci> execAnalitzador bitCharA "1"      
+ghci> execAnalitzador bitCharA "1"
 Just ('1',"")
 
 ghci> execAnalitzador bitCharA "10"
 Just ('1',"0")
 
-ghci> execAnalitzador bitCharA " 1" 
+ghci> execAnalitzador bitCharA " 1"
 Nothing
 -}
 
 bitCharA :: Analitzador Char
 bitCharA = complirA (\c -> c == '0' || c == '1')
 
-{- 
- Igual que bitCharA pero en cas d'exit el 
+{-
+ Igual que bitCharA pero en cas d'exit el
  resultat de l'analitzador es un enter
 -}
 bitA :: Analitzador Int
 bitA = fmap (\c -> read [c]) bitCharA
 
-
 {-
  L'analitzador te exit si l'entrada es un String que
- comença per  un seguit de '0's i/o '1's 
+ comença per  un seguit de '0's i/o '1's
 -}
 bitsA :: Analitzador [Int]
 bitsA = capOmes (espaisA *> bitA <* espaisA)
 
-
-coincideix :: String -> Analitzador String 
+coincideix :: String -> Analitzador String
 coincideix [] = pure []
-coincideix (x:xs) = pure (:) <*> (caracterA x) <*> (coincideix xs)
+coincideix (x : xs) = pure (:) <*> (caracterA x) <*> (coincideix xs)
+
 -- coincideix (x:xs) = liftA2 (:) (caracterA x) (coincideix xs)
 
 {-
 execAnalitzador (coincideix "abc") "abc"
   Just ("abc","")
 
-ghci> execAnalitzador (coincideix "abc") "abcd"  
+ghci> execAnalitzador (coincideix "abc") "abcd"
 Just ("abc","d")
 
-ghci> execAnalitzador (coincideix "abc") "bcd" 
+ghci> execAnalitzador (coincideix "abc") "bcd"
 Nothing
 -}
 
 {-
-(<$) :: a -> f b -> f a 
-Replace all locations in the input with the same value. 
+(<$) :: a -> f b -> f a
+Replace all locations in the input with the same value.
 The default definition is fmap . const.
 
 Exemple:
@@ -269,23 +261,27 @@ Just 'a'
 -}
 
 tipusSegA :: Analitzador TipusSeg
-tipusSegA = (PSH <$ coincideix "PSH") <|> (ACK <$ coincideix "ACK") <|> (SYN <$ coincideix "SYN") <|> (FIN <$ coincideix "FIN")
+tipusSegA =
+  (PSH <$ coincideix "PSH")
+    <|> (ACK <$ coincideix "ACK")
+    <|> (SYN <$ coincideix "SYN")
+    <|> (FIN <$ coincideix "FIN")
 
 {-
 Observacions:
 
- Per analitzar alguna 'cosa' i ignorar el seu resultat es poden fer servir 
+ Per analitzar alguna 'cosa' i ignorar el seu resultat es poden fer servir
  les funcions (*>) i (<*) :
-     
+
     (*>) :: Applicative f => f a -> f b -> f b
     (<*) :: Applicative f => f a -> f b -> f a
 
   f1 *> f2 executa primer f1, llavors f2 pero ignora el resultat de f1,
   i dona com a resultat el resultat de f2.
- 
-  f1 <* f2 tambe executa primer f1, llavors f2 pero dona com a resultat 
+
+  f1 <* f2 tambe executa primer f1, llavors f2 pero dona com a resultat
   el resultat de f1 (i ignora el resultat de f2)
- 
+
  Exemples:
 
     ghci> execAnalitzador (caracterA 'a' *> enterPosA ) "a123bc"
@@ -300,13 +296,12 @@ Observacions:
     ghci> execAnalitzador (caracterA 'a' <*  enterPosA ) "a123abc"
     Just ('a',"abc")
 
-    ghci> execAnalitzador (caracterA 'a' <* enterPosA ) "b123cd"  
+    ghci> execAnalitzador (caracterA 'a' <* enterPosA ) "b123cd"
     Nothing
- 
+
 -}
 
-
-{- 
+{-
    Funcio que donat un caracter te com a resultat un analitzador que
    'elimina' espais abans i despres del caracter a l'entrada
 
@@ -324,8 +319,6 @@ Observacions:
 espCaracteResp :: Char -> Analitzador Char
 espCaracteResp c = espaisA *> caracterA c <* espaisA
 
-
-
 {-
  El format de les possibles capçaleres a analitzar es:
 
@@ -337,16 +330,22 @@ espCaracteResp c = espaisA *> caracterA c <* espaisA
 
    capçaleraACK456 = "    <    ACK 456  01010101    >   "
 
-   ghci> execAnalitzador capçaleraA capçaleraACK456 
+   ghci> execAnalitzador capçaleraA capçaleraACK456
    Just (Cap PSH 456 [0,1,0,1,0,1,0,1],"")
 
 -}
 
 capçaleraA :: Analitzador Capcalera
-capçaleraA = Cap <$> (espaisA *> caracterA '<' *> espaisA *> tipusSegA) <*> (espaisA *> enterPosA) <*> (espaisA *> checkSumA) <* espaisA <* caracterA '>' <* espaisA
-  where checkSumA = sequenceA (replicate 8 bitA)
-
-
+capçaleraA =
+  Cap
+    <$> (espaisA *> caracterA '<' *> espaisA *> tipusSegA)
+    <*> (espaisA *> enterPosA)
+    <*> (espaisA *> checkSumA)
+    <* espaisA
+    <* caracterA '>'
+    <* espaisA
+  where
+    checkSumA = sequenceA (replicate 8 bitA)
 
 {-
  El format de les possibles dades a analitzar es:
@@ -363,28 +362,32 @@ capçaleraA = Cap <$> (espaisA *> caracterA '<' *> espaisA *> tipusSegA) <*> (es
   Just (Dades [1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,0,0,1,1,1,0,0,0,1,1,1],"")
 -}
 
-
 dadesA :: Analitzador Dades
-dadesA = fmap D (espCaracteResp '{' *> bitsA <* espCaracteResp '}')
-
+dadesA =
+  fmap D
+    ( espCaracteResp '{'
+        *> bitsA
+        <* espCaracteResp '}'
+    )
 
 dades01 = " { 101010010101   01010101001    000 111 0 0 0 1 1 1  }  "
 
-
 {-
  Exemple:
- 
+
  segmentPSH123 = "  <   PSH 123  01010101  >  {  011001100 110100 101100  001 }  "
 
-
- ghci> execAnalitzador segmentA segmentPSH123 
+ ghci> execAnalitzador segmentA segmentPSH123
  Just (PSH - 123 - [0,1,0,1,0,1,0,1] - fia,"")
 
--} 
+-}
 segmentPSH123 = "  <   PSH 123  01010101  >  {  011001100 110100 101100  001 }  "
 
 segmentA :: Analitzador TCPSegment
-segmentA = fmap Segment capçaleraA <*> dadesA
+segmentA =
+  Segment
+    <$> capçaleraA
+    <*> dadesA
 
 
 segmentsProcessats = " <  ACK  68    00000000     >     { }   <  PSH  144    00010110     >    {    01101110011000110111010001101111   }  <     ACK   82   00000000 >   {     }  <  PSH   136 01001101   > {  1 0 1 0000   10010010   10010  01010  1001100  }  <   SYN   120   00000000  > {  }    <    PSH  140   01000000 > {  0  11100  11001  00000  01100 110  0111 0101   }    <  PSH   120  00111111   > { 010000 10011 0010101    10111   0011   10110 }  <   ACK   144  00000000 >    {     }   <    PSH  140   01000000 > {  0  10100  11001  00000  01110 110  1111 0101   }    <   PSH 124  00010101  >     {   011   010010  1101110  01100111  01110101   } <FIN 234 00000000  >{     }   < PSH  128     01011001>   {    0  1110  10000100000011000010110110  0  }<PSH 132  01001100  > {  00100   000011   01101011   01111  011011  1 0  }  <  PSH   120  00111111   > { 010000 10011 0010101    10111   0011   10110 }   <  PSH   136 01001101   > {  0 0 1 0000   00110010   00110  01010  1101100  }  <FIN 234 00000000  >{     }     <     PSH  148    00100000  >  {  0111   00100  11100  1100100001  }"
@@ -393,29 +396,26 @@ segmentsProcessats = " <  ACK  68    00000000     >     { }   <  PSH  144    000
 segmentsA :: Analitzador [TCPSegment]
 segmentsA = capOmes segmentA
 
-
-{-|
-  Decodifica una cadena amb múltiples segments TCP textuals reutilitzant les
-  funcions del laboratori 5. El pipeline és:
-
-    1. Analitzar tots els segments amb 'segmentsA'.
-    2. Descarta els que tenen error de checksum amb 'ambError'.
-    3. Filtra només els PSH amb 'segmentsPSH'.
-    4. Elimina duplicats i ordena'ls amb 'segmentsUnicsOrdenats'.
-    5. Concatena les dades textuals via 'dadesToString'.
--}
+-- |
+--  Decodifica una cadena amb múltiples segments TCP textuals reutilitzant les
+--  funcions del laboratori 5. El pipeline és:
+--
+--    1. Analitzar tots els segments amb 'segmentsA'.
+--    2. Descarta els que tenen error de checksum amb 'ambError'.
+--    3. Filtra només els PSH amb 'segmentsPSH'.
+--    4. Elimina duplicats i ordena'ls amb 'segmentsUnicsOrdenats'.
+--    5. Concatena les dades textuals via 'dadesToString'.
 decodificaSegmentsTextuals :: String -> Maybe String
 decodificaSegmentsTextuals entrada = do
-  (segs, rest) <- execAnalitzador segmentsA entrada
+  (segs, _rest) <- execAnalitzador segmentsA entrada
   let senseError = filter (not . teError) segs
-      pshSegs = segmentsPSH senseError
-      ordenats = segmentsUnicsOrdenats pshSegs
-      missatge = concatMap extreureDades ordenats
+  let pshSegs = segmentsPSH senseError
+  let ordenats = segmentsUnicsOrdenats pshSegs
+  let missatge = concatMap extreureDades ordenats
   pure missatge
   where
     teError seg = fromMaybe True (ambError seg)
     extreureDades (Segment _ dades) = dadesToString dades
-
 
 missatgeProcessat :: Maybe String
 missatgeProcessat = decodificaSegmentsTextuals segmentsProcessats

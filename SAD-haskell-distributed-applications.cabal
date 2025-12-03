@@ -12,6 +12,7 @@ library
       Clases.Fitxers.Monads2
       Clases.Fitxers.MonadIO
       Clases.Fitxers.MonadEstat
+      Clases.Fitxers.ThreadsMVars
   hs-source-dirs: ., lab3, lab4, lab5, lab6, Clases
   build-depends: base, hashable, transformers, ansi-terminal
   default-language: GHC2021
