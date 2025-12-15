@@ -57,14 +57,17 @@
         devShells.default = pkgs.mkShell {
           buildInputs = [ ghcWithPackages pkgs.cabal-install haskellPackages.haskell-language-server ];
           shellHook = ''
-            echo "=== Haskell Project Shell with HUnit ==="
-            echo "GHC version: $(ghc --version | head -n1)"
-            echo "HUnit preloaded—Test.HUnit import works in GHCi!"
-            echo ""
-            echo "Available commands:"
-            echo "  nix build        # Build the project"
-            echo "  nix run          # Run the executable"
-            echo "  cabal test       # Run tests"
+            # Only print welcome message in interactive shells (not when running HLS)
+            if [ -z "$HLS_WRAPPER" ] && [ -t 1 ]; then
+              echo "=== Haskell Project Shell with HUnit ==="
+              echo "GHC version: $(ghc --version | head -n1)"
+              echo "HUnit preloaded—Test.HUnit import works in GHCi!"
+              echo ""
+              echo "Available commands:"
+              echo "  nix build        # Build the project"
+              echo "  nix run          # Run the executable"
+              echo "  cabal test       # Run tests"
+            fi
           '';
         };
       }
