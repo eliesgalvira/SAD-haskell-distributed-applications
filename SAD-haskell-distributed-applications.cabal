@@ -8,13 +8,14 @@ library
       Lab4
       Codec.TCPSegment
       Lab6
+      Lab7
       Clases.Fitxers.Monads1
       Clases.Fitxers.Monads2
       Clases.Fitxers.MonadIO
       Clases.Fitxers.MonadEstat
       Clases.Fitxers.ThreadsMVars
-  hs-source-dirs: ., lab3, lab4, lab5, lab6, Clases
-  build-depends: base, hashable, transformers, ansi-terminal
+  hs-source-dirs: ., lab3, lab4, lab5, lab6, lab7, Clases
+  build-depends: base, hashable, transformers, ansi-terminal, random
   default-language: GHC2021
 
 test-suite lab3-tests
