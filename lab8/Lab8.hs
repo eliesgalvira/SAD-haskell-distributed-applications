@@ -11,9 +11,7 @@ import Network.Socket.ByteString (recv, sendAll)
 import qualified Data.ByteString.Char8 as BS
 import System.IO (hFlush, stdout, hSetBuffering, stdin, BufferMode(..))
 
--- ============================================================================
 -- Secció 2: Threads
--- ============================================================================
 
 -- Lock global per a escriptura atòmica (es crea un cop)
 type PrintLock = MVar ()
@@ -70,9 +68,7 @@ sequencials2Excepcio = do
         tascaSegons 10
         putStrLn "finalitzada tasca 10 segons mes"
 
--- ============================================================================
 -- Secció 2.1: Ús de finally
--- ============================================================================
 
 -- Usant finally: la segona part s'executa sempre
 finallySequencials2 :: IO ()
@@ -110,9 +106,7 @@ forkFinallyExcepcio = do
         )
     retardar 20
 
--- ============================================================================
 -- Secció 2.2: Finalització de threads
--- ============================================================================
 
 -- Mostra com finalitzar un thread des d'un altre
 finalitzacioThreads :: IO ()
@@ -132,9 +126,7 @@ finalitzacioThreads = do
             killThread idenThread1
         )
 
--- ============================================================================
 -- Secció 2.3: Exercici - Dos threads amb timeout
--- ============================================================================
 
 -- Exercici: Thread 1 demana text, Thread 2 el mata als 5 segons
 exerciciDosThreads :: IO ()
@@ -171,9 +163,7 @@ exerciciDosThreads = do
         Just text -> atomicPutStrLnWith printLock $ "Has escrit: " ++ text
         Nothing   -> atomicPutStrLnWith printLock "No has escrit res a temps."
 
--- ============================================================================
 -- Secció 3: Canal de Broadcast
--- ============================================================================
 
 -- Tipus per al canal de broadcast
 type ChanW a = MVar [Chan a]  -- Extrem d'escriptura (llista de canals de lectura)
@@ -211,9 +201,7 @@ writeChanW chanW msg = do
 readChanR :: ChanR a -> IO a
 readChanR = readChan
 
--- ============================================================================
 -- Secció 3.1: Exercici Broadcast
--- ============================================================================
 
 -- Exercici amb dos lectors
 exerciciBroadcast :: IO ()
@@ -249,9 +237,7 @@ exerciciBroadcast = do
     retardar 2
     atomicPutStrLnWith printLock "Fi exercici broadcast"
 
--- ============================================================================
 -- Secció 4: Servei Eco
--- ============================================================================
 
 -- Port per defecte
 portDefecte :: String
@@ -277,9 +263,7 @@ crearServ = do
     conn <- newMVar M.empty
     pure $ Servidor conn
 
--- ============================================================================
 -- Secció 4.1: Client Eco bàsic
--- ============================================================================
 
 -- Tasca de xarxa: llegeix del socket i mostra per pantalla
 tascaXarxa :: Socket -> MVar Bool -> IO ()
@@ -358,9 +342,7 @@ clientGeneral = do
     tails [] = [[]]
     tails xs@(_:xs') = xs : tails xs'
 
--- ============================================================================
 -- Secció 4.3: Servidor Eco amb Nick
--- ============================================================================
 
 -- Obtenir nick d'un client
 obtenirNick :: Socket -> IO Usuari
@@ -427,9 +409,7 @@ servidorEcoNick = do
             )
         bucleAcceptar sock
 
--- ============================================================================
 -- Secció 4.4: Servidor Eco amb Nick Únic
--- ============================================================================
 
 -- Intenta afegir un nou usuari al mapa del servidor
 -- Retorna Just usuari si no existeix, Nothing si ja existeix
@@ -512,9 +492,7 @@ servidorEcoNickUnic = do
             )
         bucleAcceptar servidor sock
 
--- ============================================================================
 -- Main
--- ============================================================================
 
 main :: IO ()
 main = do
