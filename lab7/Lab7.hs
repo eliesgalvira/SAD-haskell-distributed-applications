@@ -5,9 +5,7 @@ import System.Random (randomRIO)
 import Data.List (nub)
 import Data.Char (isDigit, digitToInt)
 
--- ============================================================================
 -- Secció 1: El monad EstatIO
--- ============================================================================
 
 -- EstatIO combina el monad State amb el monad IO
 newtype EstatIO s a = EstatIO { execEstatIO :: s -> IO (s, a) }
@@ -44,9 +42,7 @@ pujarIO io = EstatIO $ \estat -> do -- monad IO
     x <- io
     pure (estat, x)
 
--- ============================================================================
 -- Secció 1.1: Interacció amb l'usuari - Exercici EstatProva
--- ============================================================================
 
 -- Estat de prova: llista d'entrades i número d'entrades restants
 data EstatProva = EP { entrades :: [String], numEntrades :: Int }
@@ -70,9 +66,7 @@ provaEstatIO = do
 executarProva :: IO (EstatProva, ())
 executarProva = execEstatIO provaEstatIO (EP [] 3)
 
--- ============================================================================
 -- Secció 2: Joc Bons i Dolents
--- ============================================================================
 
 -- Tipus per representar una jugada (4 dígits)
 type Jugada = [Int]
@@ -185,9 +179,7 @@ jugar = do
     _ <- execEstatIO bucleJoc estatInicial
     return ()
 
--- ============================================================================
 -- Main per executar directament
--- ============================================================================
 
 main :: IO ()
 main = jugar
