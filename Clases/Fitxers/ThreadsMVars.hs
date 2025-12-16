@@ -96,8 +96,16 @@ pasValors = do
     print r
     pure ()
 
+-- Versió amb MVar per sincronitzar A i B alternats
 tercerAB :: IO ()
-tercerAB = undefined
+tercerAB = do
+    mvar <- newEmptyMVar
+    forkIO $ do
+        bucleMostrar 100 "A"
+        putMVar mvar ()  -- Senyalitza que A ha acabat
+    takeMVar mvar        -- Espera que A acabi
+    forkIO $ bucleMostrar 100 "B"
+    pure ()
 
 
 
@@ -113,8 +121,12 @@ type CF = MVar ()
 
 
 iniciarFil :: IO () -> IO CF
-iniciarFil accio = undefined
-
+iniciarFil accio = do
+    cf <- newEmptyMVar
+    forkIO $ do
+        accio                -- Executa l'acció del fil
+        putMVar cf ()        -- Senyalitza que ha acabat
+    pure cf
 
 --  where
     -- Delega l'execució de la funció del fil a una nova funció, 
@@ -123,7 +135,7 @@ iniciarFil accio = undefined
 
 
 esperarFil :: CF -> IO ()
-esperarFil = undefined
+esperarFil cf = takeMVar cf  -- Bloqueja fins que el fil acabi
 
 
 {-
@@ -133,7 +145,7 @@ forM :: Monad m => [a] -> (a -> m b) -> m [b]
     - and collect the results. 
 -}
 iniciarFils :: [IO ()] -> IO [CF]
-iniciarFils = undefined
+iniciarFils accions = forM accions iniciarFil
 
 
 
@@ -145,7 +157,7 @@ replicate :: Int -> a -> [a]
       is a list of length n with x the value of every element.
 -}
 iniciarFilsIguals :: Int -> IO () -> IO [CF]
-iniciarFilsIguals = undefined
+iniciarFilsIguals n accio = iniciarFils (replicate n accio)
 
 
 
@@ -157,7 +169,7 @@ forM_ :: Monad m => [a] -> (a -> m b) -> m ()
     - and ignore the results. 
 -}
 esperarFils :: [CF] -> IO ()
-esperarFils = undefined
+esperarFils cfs = forM_ cfs esperarFil
 
 
 
@@ -168,19 +180,33 @@ meuFun str = do
 
 
 primerFils :: IO ()
-primerFils = undefined
+primerFils = do
+    cfs <- iniciarFils [meuFun "Fil 1", meuFun "Fil 2", meuFun "Fil 3"]
+    esperarFils cfs
+    putStrLn "Tots els fils han acabat!"
 
 
 
 type ControlPrint = MVar ()
 
 atomicPutStrLn :: ControlPrint -> String -> IO ()
-atomicPutStrLn lock str = undefined
+atomicPutStrLn lock str = do
+    takeMVar lock      -- Agafar el lock (bloqueja si ocupat)
+    putStrLn str       -- Imprimir
+    putMVar lock ()    -- Alliberar el lock
             
 
 
 segonFils :: IO ()
-segonFils = undefined
+segonFils = do
+    lock <- newMVar ()  -- Crear lock per impressió atòmica
+    cfs <- iniciarFils 
+        [ atomicPutStrLn lock "Fil 1"
+        , atomicPutStrLn lock "Fil 2"
+        , atomicPutStrLn lock "Fil 3"
+        ]
+    esperarFils cfs
+    atomicPutStrLn lock "Tots els fils han acabat!"
 
 
 
@@ -195,17 +221,24 @@ Resoldre el problema posant aquesta variable en una MVar.
 type Comptador = MVar Int
 
 inc :: Comptador -> IO ()
-inc c = undefined
+inc c = do
+    val <- takeMVar c      -- Agafar valor (i bloquejar)
+    putMVar c (val + 1)    -- Posar valor incrementat (i desbloquejar)
 
 
 
 filInc :: Int -> Comptador -> IO ()
-filInc = undefined
+filInc n c = replicateM_ n (inc c)  -- Incrementar n vegades
 
 
 
 exempleComptador :: Int -> Int -> IO ()
-exempleComptador numFils numInc = undefined
+exempleComptador numFils numInc = do
+    comptador <- newMVar 0
+    cfs <- iniciarFilsIguals numFils (filInc numInc comptador)
+    esperarFils cfs
+    resultat <- takeMVar comptador
+    printf "Resultat: %d (esperat: %d)\n" resultat (numFils * numInc)
 
 
 
@@ -242,25 +275,57 @@ data BufferPC a = B {cua :: (MVar ([a], Int)), control :: ControlPC}
 data ControlPC = C {cp :: MVar (), cc::MVar ()}
 
 controlPC :: IO ControlPC
-controlPC = undefined
+controlPC = do
+    cpVar <- newMVar ()      -- Productor pot començar (hi ha espai)
+    ccVar <- newEmptyMVar    -- Consumidor ha d'esperar (no hi ha res)
+    pure $ C cpVar ccVar
 
 
 
 nouBufferPC :: Int -> IO (BufferPC a)
-nouBufferPC capacitat = undefined
+nouBufferPC capacitat = do
+    cuaVar <- newMVar ([], capacitat)  -- Cua buida amb capacitat
+    ctrl <- controlPC
+    pure $ B cuaVar ctrl
 
 
 
 
 posarPC :: Show a => ControlPrint -> BufferPC a -> a -> IO ()
-posarPC cprt buf  val  = undefined
+posarPC cprt buf val = do
+    -- Esperar si el buffer està ple
+    (llista, cap) <- takeMVar (cua buf)
+    if length llista >= cap
+        then do
+            putMVar (cua buf) (llista, cap)  -- Tornar a posar
+            takeMVar (cp (control buf))       -- Esperar senyal de consumidor
+            posarPC cprt buf val              -- Tornar a intentar
+        else do
+            let novaLlista = llista ++ [val]
+            putMVar (cua buf) (novaLlista, cap)
+            atomicPutStrLn cprt $ "Productor: afegit " ++ show val
+            -- Senyalitzar al consumidor que hi ha element
+            _ <- tryPutMVar (cc (control buf)) ()
+            pure ()
 
 
 
 
 
 treurePC ::  (Show a) => ControlPrint -> BufferPC a -> IO a
-treurePC cprt buf = undefined
+treurePC cprt buf = do
+    (llista, cap) <- takeMVar (cua buf)
+    case llista of
+        [] -> do
+            putMVar (cua buf) (llista, cap)  -- Tornar a posar
+            takeMVar (cc (control buf))       -- Esperar senyal de productor
+            treurePC cprt buf                 -- Tornar a intentar
+        (x:xs) -> do
+            putMVar (cua buf) (xs, cap)
+            atomicPutStrLn cprt $ "Consumidor: tret " ++ show x
+            -- Senyalitzar al productor que hi ha espai
+            _ <- tryPutMVar (cp (control buf)) ()
+            pure x
 
 
 
@@ -269,19 +334,37 @@ elems :: [Char]
 elems = ['a','b','c','d']
 
 productor :: (Show a) => ControlPrint -> [a] -> BufferPC a ->  IO ()
-productor = undefined
+productor cprt elements buf = forM_ elements $ \e -> do
+    posarPC cprt buf e
+    threadDelay 100000  -- Petit retard per veure l'efecte
 
 
 
 
 consumidor :: (Show a) => ControlPrint ->  Int -> BufferPC a -> IO ()
-consumidor = undefined
+consumidor cprt n buf = replicateM_ n $ do
+    _ <- treurePC cprt buf
+    threadDelay 150000  -- Petit retard (consumidor més lent)
 
 
 
 
 exemplePC :: IO ()
-exemplePC = undefined
+exemplePC = do
+    lock <- newMVar ()           -- Lock per impressió atòmica
+    buf <- nouBufferPC 2         -- Buffer amb capacitat 2
+    
+    atomicPutStrLn lock "Iniciant productor-consumidor..."
+    
+    -- Iniciar productor i consumidor
+    cfProd <- iniciarFil $ productor lock elems buf
+    cfCons <- iniciarFil $ consumidor lock (length elems) buf
+    
+    -- Esperar que acabin
+    esperarFil cfProd
+    esperarFil cfCons
+    
+    atomicPutStrLn lock "Fi productor-consumidor!"
 
     
 
