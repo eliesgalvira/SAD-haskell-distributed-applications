@@ -10,12 +10,13 @@ library
       Lab6
       Lab7
       Lab8
+      Lab9
       Clases.Fitxers.Monads1
       Clases.Fitxers.Monads2
       Clases.Fitxers.MonadIO
       Clases.Fitxers.MonadEstat
       Clases.Fitxers.ThreadsMVars
-  hs-source-dirs: ., lab3, lab4, lab5, lab6, lab7, lab8, Clases
+  hs-source-dirs: ., lab3, lab4, lab5, lab6, lab7, lab8, lab9, Clases
   build-depends: base, hashable, transformers, ansi-terminal, random, network, bytestring, containers
   default-language: GHC2021
 
