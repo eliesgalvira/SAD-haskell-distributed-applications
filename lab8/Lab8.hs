@@ -20,7 +20,7 @@ type PrintLock = MVar ()
 newPrintLock :: IO PrintLock
 newPrintLock = newMVar ()
 
--- Escriptura atòmica per evitar interleaving de sortides
+-- Escriptura atòmica per evitar entrellaçament de sortides
 -- Utilitza un MVar com a lock
 atomicPutStrLnWith :: PrintLock -> String -> IO ()
 atomicPutStrLnWith lock s = do
