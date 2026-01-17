@@ -82,10 +82,13 @@ data EstatJoc = EJ
 maxIntents :: Int
 maxIntents = 10
 
+-- Línia separadora per al format de sortida
+separador :: String
+separador = "------------------------------------------------"
+
 -- Genera un número aleatori de 4 dígits diferents
 generarSecret :: IO Jugada
 generarSecret = do
-    let digits = [0..9]
     d1 <- randomRIO (0, 9)
     d2 <- pickDifferent [d1]
     d3 <- pickDifferent [d1, d2]
@@ -123,16 +126,22 @@ mostrarJugades js = do
     pujarIO $ putStrLn "Jugades previes:"
     pujarIO $ mapM_ print js
 
--- Demana una jugada vàlida a l'usuari
-demanarJugada :: EstatIO EstatJoc Jugada
-demanarJugada = do
+-- Demana una jugada vàlida a l'usuari (sense separador, per reintentar)
+demanarJugadaLoop :: EstatIO EstatJoc Jugada
+demanarJugadaLoop = do
     pujarIO $ putStr "Entra jugada : "
     input <- pujarIO getLine
     case validarJugada input of
         Nothing -> do
             pujarIO $ putStrLn "Jugada no valida"
-            demanarJugada
+            demanarJugadaLoop
         Just j -> return j
+
+-- Demana una jugada vàlida a l'usuari (amb separador al principi)
+demanarJugada :: EstatIO EstatJoc Jugada
+demanarJugada = do
+    pujarIO $ putStrLn separador
+    demanarJugadaLoop
 
 -- Bucle principal del joc
 bucleJoc :: EstatIO EstatJoc ()
