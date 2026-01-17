@@ -314,7 +314,7 @@ clientGeneral = do
         resposta <- recv sock 1024
         let text = BS.unpack resposta
         
-        if "ja es fa servir" `isInfixOf` text
+        if take 8 text == "El nick "
             then do
                 putStrLn $ "> " ++ text
                 clientGeneral  -- Tornar a intentar
@@ -337,10 +337,6 @@ clientGeneral = do
         sock <- socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
         connect sock (addrAddress addr)
         return sock
-    
-    isInfixOf needle haystack = needle `elem` (map (take (length needle)) (tails haystack))
-    tails [] = [[]]
-    tails xs@(_:xs') = xs : tails xs'
 
 -- Secció 4.3: Servidor Eco amb Nick
 
