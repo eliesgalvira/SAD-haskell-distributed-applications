@@ -1,4 +1,5 @@
 # Laboratori DAT / 1
+Nota: 9/10
 
 Índex
 1 Entorn de treball ..... 2

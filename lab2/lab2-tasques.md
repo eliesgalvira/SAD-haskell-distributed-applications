@@ -1,4 +1,5 @@
 # Laboratori DAT / 2 
+Nota:7/10
 
 Índex
 1 Tipificat de números ..... 2

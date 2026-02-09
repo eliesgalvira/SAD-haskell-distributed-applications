@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+-- Nota: 7/10
 module Lab8 where
 
 import Control.Concurrent

@@ -1,3 +1,4 @@
+-- Nota: 6/10
 module Lab3_1-corregit where
 
 -- 1.1 Expressions de tipus

@@ -1,3 +1,4 @@
+-- Nota: 8/10
 module Lab4-corregit where
 
 -- Importació necessària: utilitzem els tipus Llista i Nat definits al lab 3

@@ -9,7 +9,7 @@ import Control.Exception
 import Network.Socket.ByteString
 import Data.ByteString.Char8 (pack, unpack)
 import Data.List (delete)
-
+-- Nota: 10/10
 
 
 -- Dades Servidor
